@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NutriKid Doctor Professional Dashboard</title>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2b9dee",
+                        "mint": "#4ade80",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101a22",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d161b] dark:text-slate-100 font-display transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#16222c] flex flex-col h-full">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">child_care</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight text-primary">NutriKid</h2>
+</div>
+<nav class="flex-1 px-4 py-2 space-y-2">
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold">Dashboard</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Patient List</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-sm font-medium">Consultations</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Reports</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</div>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
+<div class="size-10 rounded-full bg-slate-300 bg-cover bg-center" data-alt="Portrait of a professional pediatrician doctor" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAkcGhuN0HLH6fSnmmY6RQ8izxvtJLxXgMku16BJJobAR1tr0c4k02BPM9ACjvSYjMuZMdHGoy_KGsaOoPk3kDcS-fHTDCBx19y3u_GXhlKPyqAy4tNrGGJx2kvmVPfdqwQvcQU261QjxWMTrqDVEiFmy6t1GE96Jkw6nJNHv87LBLt9a25lPWmJpjt4LszD6FdveXIEDyKtKLT-nTjc-u_woe-Yf1_E1Y1Wsdmv0LxAAlBtrhWt5VoAov2qigiknrr3hXFB42tCpc')"></div>
+<div class="flex flex-col">
+<p class="text-xs font-bold">Dr. Sarah Smith</p>
+<p class="text-[10px] text-slate-500">Pediatrician</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 ml-auto text-lg cursor-pointer">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-y-auto bg-background-light dark:bg-background-dark">
+<!-- Top Header -->
+<header class="h-20 flex items-center justify-between px-8 bg-white dark:bg-[#16222c] border-b border-slate-200 dark:border-slate-800 shrink-0">
+<div class="flex flex-col">
+<h1 class="text-2xl font-extrabold tracking-tight">Doctor's Overview</h1>
+<p class="text-sm text-slate-500 dark:text-slate-400">Good morning, Dr. Smith. Here's what's happening today.</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-lg">add</span>
+                        New Consultation
+                    </button>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Quick Stats -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-[#16222c] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Patients</p>
+<p class="text-3xl font-extrabold mt-1">1,284</p>
+</div>
+<div class="size-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined">groups</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-1.5 text-xs text-mint font-bold">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+12% from last month</span>
+</div>
+</div>
+<div class="bg-white dark:bg-[#16222c] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Pending Charts</p>
+<p class="text-3xl font-extrabold mt-1">12</p>
+</div>
+<div class="size-12 rounded-lg bg-yellow-500/10 text-yellow-500 flex items-center justify-center">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-1.5 text-xs text-yellow-600 font-bold">
+<span class="material-symbols-outlined text-sm">info</span>
+<span>Requires urgent review</span>
+</div>
+</div>
+<div class="bg-white dark:bg-[#16222c] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Today's Appointments</p>
+<p class="text-3xl font-extrabold mt-1">8</p>
+</div>
+<div class="size-12 rounded-lg bg-mint/10 text-mint flex items-center justify-center">
+<span class="material-symbols-outlined">event_available</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-1.5 text-xs text-slate-500 font-bold">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>Next: Leo G. at 10:30 AM</span>
+</div>
+</div>
+</section>
+<!-- Search & Filters -->
+<section class="flex flex-col md:flex-row gap-4 items-center">
+<div class="relative flex-1 w-full">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-12 pr-4 py-3 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-[#16222c] focus:ring-primary focus:border-primary dark:text-white" placeholder="Search patients by name, ID or nutrition status..." type="text"/>
+</div>
+<div class="flex gap-2 w-full md:w-auto">
+<button class="flex items-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-[#16222c] border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-lg">filter_alt</span>
+                            Filter
+                        </button>
+<button class="flex items-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-[#16222c] border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-lg">sort</span>
+                            Sort
+                        </button>
+</div>
+</section>
+<!-- Priority Patients Grid -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold tracking-tight">Active Growth Profiles</h3>
+<a class="text-primary text-sm font-bold hover:underline" href="#">View All Patients</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Patient Card 1 -->
+<div class="bg-white dark:bg-[#16222c] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="size-16 rounded-full bg-blue-100 dark:bg-blue-900/30 overflow-hidden border-2 border-white dark:border-slate-800">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young smiling child patient" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu_pr6Ge83RooqptoInyJynnC6Byl2EouhILjG9HECS-2SDPMbKcELskLRtGLYU8Jl0WBOgjvYV7cBuHvqqCkoEc4FvciC8avNc4qZRfu2XHlisXUyEkxyzxEno2dz8mZst2uyFFuldDpcyEgcDLaHhDVSrRn-xPAXIRdWdHbwN93J3VwzdoPQ3OGkEvIFEIMqv6jlW4OjEt7eH1O94IQ-Qy_xA4kXBAdNbvNivuF2SScRr8NJpAR_kFoD5N4qBwDs3PZcUpWtFIs"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h4 class="font-bold text-lg group-hover:text-primary transition-colors">Emma Watson</h4>
+<span class="px-2 py-0.5 bg-mint/10 text-mint text-[10px] font-bold rounded-full uppercase tracking-wider">Normal</span>
+</div>
+<p class="text-slate-500 text-xs">ID: #NK-9201 • Age: 4y 2m</p>
+</div>
+</div>
+<div class="mt-6 grid grid-cols-3 gap-4 border-y border-slate-100 dark:border-slate-800 py-4">
+<div class="text-center border-r border-slate-100 dark:border-slate-800">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Weight</p>
+<p class="text-sm font-bold mt-1">16.2 kg</p>
+</div>
+<div class="text-center border-r border-slate-100 dark:border-slate-800">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Percentile</p>
+<p class="text-sm font-bold mt-1">65th</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">BMI</p>
+<p class="text-sm font-bold mt-1">15.4</p>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-sm">history</span>
+<span class="text-[10px] text-slate-400">Last visit: 2 weeks ago</span>
+</div>
+<button class="text-primary text-xs font-bold flex items-center gap-1 group/btn">
+                                    View Report
+                                    <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Patient Card 2 -->
+<div class="bg-white dark:bg-[#16222c] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="size-16 rounded-full bg-orange-100 dark:bg-orange-900/30 overflow-hidden border-2 border-white dark:border-slate-800">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young boy smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-17uEGYSsT2H3HzJksHEm-BLMACOZzeQUSg4k_Yr6pNQHZR2Jp_Fpl_IpYMKviWt84n_emIuJx9XcN-XjZJ4kV6sc1kihcg6r0ZznnqXC5cN5fl2EGL-MRJEfdxpSk1rOj_LTexU0DoUN7TGWMyW4nHEBR0NKrbjFCHviJSghhdm3660SuGMPNd3IPcy42b1L58jlGoMeVg9KZHmge78EHhXHq6u_8Bap4jJmUvXAKESq48muM09QlLRMj8PO7tqtpDFs98C1Wes"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h4 class="font-bold text-lg group-hover:text-primary transition-colors">Leo Garcia</h4>
+<span class="px-2 py-0.5 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold rounded-full uppercase tracking-wider">Review Needed</span>
+</div>
+<p class="text-slate-500 text-xs">ID: #NK-8312 • Age: 6y 1m</p>
+</div>
+</div>
+<div class="mt-6 grid grid-cols-3 gap-4 border-y border-slate-100 dark:border-slate-800 py-4">
+<div class="text-center border-r border-slate-100 dark:border-slate-800">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Weight</p>
+<p class="text-sm font-bold mt-1">22.5 kg</p>
+</div>
+<div class="text-center border-r border-slate-100 dark:border-slate-800">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Percentile</p>
+<p class="text-sm font-bold mt-1">88th</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">BMI</p>
+<p class="text-sm font-bold mt-1">17.8</p>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-sm">history</span>
+<span class="text-[10px] text-slate-400">Next visit: Today 10:30 AM</span>
+</div>
+<button class="text-primary text-xs font-bold flex items-center gap-1 group/btn">
+                                    View Report
+                                    <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Patient Card 3 -->
+<div class="bg-white dark:bg-[#16222c] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="size-16 rounded-full bg-purple-100 dark:bg-purple-900/30 overflow-hidden border-2 border-white dark:border-slate-800">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young girl laughing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx4k3FabXY3xbOUndSTafVWwRvikuX0T8Fzwmln6z8F5J6989WDb6HmTZ-e8Qwwjdg_F0Rp2r8YyeHA0iqfXEw0perDRQY8UPouWXoiu5rRpGpQIs_Y_KE8X4tOYS6z2G2sV-ThZ451kYkuf5oBw7YStqfgLFTaEcPD_esCMO6RyvMMZ0LlcmRYPF-dnNrzId2_OfUH8M19FqNlnJvegARNKpXaYlRx5DAUfNkej9lXKfrmgEXC4XhKu2hz1LCVtH8HQdsKZmuuwg"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h4 class="font-bold text-lg group-hover:text-primary transition-colors">Sophie Chen</h4>
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-wider">Growth Spurt</span>
+</div>
+<p class="text-slate-500 text-xs">ID: #NK-7742 • Age: 2y 8m</p>
+</div>
+</div>
+<div class="mt-6 grid grid-cols-3 gap-4 border-y border-slate-100 dark:border-slate-800 py-4">
+<div class="text-center border-r border-slate-100 dark:border-slate-800">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Weight</p>
+<p class="text-sm font-bold mt-1">12.4 kg</p>
+</div>
+<div class="text-center border-r border-slate-100 dark:border-slate-800">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Percentile</p>
+<p class="text-sm font-bold mt-1">42nd</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">BMI</p>
+<p class="text-sm font-bold mt-1">14.9</p>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-sm">history</span>
+<span class="text-[10px] text-slate-400">Last visit: 3 months ago</span>
+</div>
+<button class="text-primary text-xs font-bold flex items-center gap-1 group/btn">
+                                    View Report
+                                    <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Activity & Calendar Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Recent Activity -->
+<div class="lg:col-span-2 bg-white dark:bg-[#16222c] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+<h3 class="text-lg font-bold mb-6">Parent Log Updates</h3>
+<div class="space-y-4">
+<div class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<div class="size-10 bg-mint/20 text-mint rounded-full flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<p class="text-sm font-bold">New Food Log: Sophie Chen</p>
+<span class="text-xs text-slate-400">10m ago</span>
+</div>
+<p class="text-xs text-slate-500 mt-1">Parent uploaded 3 new daily meal logs for review.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<div class="size-10 bg-primary/20 text-primary rounded-full flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">straighten</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<p class="text-sm font-bold">Measurement Update: Emma Watson</p>
+<span class="text-xs text-slate-400">1h ago</span>
+</div>
+<p class="text-xs text-slate-500 mt-1">Height increased by 0.5cm since last entry.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+<div class="size-10 bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<p class="text-sm font-bold">Unusual Activity: Leo Garcia</p>
+<span class="text-xs text-slate-400">3h ago</span>
+</div>
+<p class="text-xs text-slate-500 mt-1">High sugar intake reported across last 3 days.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Daily Schedule Widget -->
+<div class="bg-white dark:bg-[#16222c] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold">Today's Schedule</h3>
+<button class="size-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400">
+<span class="material-symbols-outlined text-lg">calendar_month</span>
+</button>
+</div>
+<div class="space-y-6">
+<div class="relative pl-6 border-l-2 border-primary">
+<div class="absolute size-3 bg-primary rounded-full -left-[7px] top-1"></div>
+<p class="text-xs font-bold text-primary">10:30 AM - 11:00 AM</p>
+<p class="text-sm font-bold mt-1">Leo Garcia</p>
+<p class="text-xs text-slate-500">Regular Checkup &amp; Nutrition Review</p>
+</div>
+<div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-800">
+<div class="absolute size-3 bg-slate-200 dark:bg-slate-700 rounded-full -left-[7px] top-1"></div>
+<p class="text-xs font-bold text-slate-400">11:15 AM - 11:45 AM</p>
+<p class="text-sm font-bold mt-1 text-slate-700 dark:text-slate-300">Marcus Wright</p>
+<p class="text-xs text-slate-500">Initial Assessment</p>
+</div>
+<div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-800">
+<div class="absolute size-3 bg-slate-200 dark:bg-slate-700 rounded-full -left-[7px] top-1"></div>
+<p class="text-xs font-bold text-slate-400">12:30 PM - 01:00 PM</p>
+<p class="text-sm font-bold mt-1 text-slate-700 dark:text-slate-300">Lunch Break</p>
+</div>
+<div class="relative pl-6 border-l-2 border-slate-200 dark:border-slate-800">
+<div class="absolute size-3 bg-slate-200 dark:bg-slate-700 rounded-full -left-[7px] top-1"></div>
+<p class="text-xs font-bold text-slate-400">01:15 PM - 01:45 PM</p>
+<p class="text-sm font-bold mt-1 text-slate-700 dark:text-slate-300">Emma Watson</p>
+<p class="text-xs text-slate-500">Growth Chart Follow-up</p>
+</div>
+</div>
+<button class="w-full mt-8 py-3 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-100 transition-colors">
+                            Manage Calendar
+                        </button>
+</div>
+</section>
+</div>
+<!-- Footer Branding -->
+<footer class="mt-auto py-6 px-8 flex justify-between items-center text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
+<p>© 2024 NutriKid Health Platform. For medical professional use only.</p>
+<div class="flex gap-4">
+<a class="hover:text-primary" href="#">HIPAA Compliance</a>
+<a class="hover:text-primary" href="#">Support Center</a>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

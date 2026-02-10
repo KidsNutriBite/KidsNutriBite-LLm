@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NutriKid Immersive Kids Mode</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#2b9dee",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101a22",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .kids-bg-gradient {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+        }
+        .dark .kids-bg-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        .mascot-float {
+            animation: mascot-float 3s ease-in-out infinite;
+        }
+        @keyframes mascot-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 40px;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 20px solid white;
+        }
+        .dark .speech-bubble::after {
+            border-top-color: #1e293b;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display overflow-hidden">
+<!-- Main Container -->
+<div class="relative min-h-screen w-full flex flex-col kids-bg-gradient transition-colors duration-500">
+<!-- Header Overlay -->
+<header class="relative z-20 flex items-center justify-between px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-lg flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-3xl">child_care</span>
+</div>
+<div>
+<h1 class="text-xl font-extrabold text-slate-800 dark:text-white leading-none">NutriKid</h1>
+<span class="text-xs font-bold text-primary uppercase tracking-widest">Adventures</span>
+</div>
+</div>
+</div>
+<!-- XP Bar Section -->
+<div class="flex-1 max-w-2xl px-12">
+<div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-white/20">
+<div class="flex justify-between items-end mb-2">
+<div class="flex items-center gap-2">
+<span class="text-2xl">🏆</span>
+<span class="text-lg font-extrabold text-slate-800 dark:text-white">Level 5 Health Hero</span>
+</div>
+<span class="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">750 / 1000 XP</span>
+</div>
+<div class="relative w-full h-5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-primary rounded-full shadow-[0_0_15px_rgba(43,157,238,0.5)] transition-all duration-1000" style="width: 75%;">
+<div class="w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+</div>
+</div>
+<p class="text-center text-xs font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-tighter">Next Milestone: Super Spinach Shredder</p>
+</div>
+</div>
+<!-- Exit Button -->
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined">logout</span>
+<span>Exit Kids Mode</span>
+</button>
+</div>
+</header>
+<!-- Main Play Area -->
+<main class="flex-1 relative flex items-center justify-center px-8 pb-12">
+<!-- Sidebar Badges -->
+<aside class="absolute left-8 top-1/2 -translate-y-1/2 flex flex-col gap-4">
+<div class="flex flex-col items-center gap-2 p-4 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-3xl border border-white/20">
+<p class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-2">Badges</p>
+<div class="w-20 h-20 rounded-full bg-yellow-400 shadow-lg flex items-center justify-center border-4 border-white cursor-pointer hover:rotate-12 transition-transform" data-alt="Golden star badge with a smile">
+<span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings: 'FILL' 1">stars</span>
+</div>
+<div class="w-20 h-20 rounded-full bg-green-400 shadow-lg flex items-center justify-center border-4 border-white cursor-pointer hover:rotate-12 transition-transform" data-alt="Green leaf health achievement badge">
+<span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings: 'FILL' 1">eco</span>
+</div>
+<div class="w-20 h-20 rounded-full bg-blue-400 shadow-lg flex items-center justify-center border-4 border-white cursor-pointer hover:rotate-12 transition-transform" data-alt="Blue water droplet hydration badge">
+<span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings: 'FILL' 1">water_drop</span>
+</div>
+<div class="w-20 h-20 rounded-full bg-slate-300 shadow-inner flex items-center justify-center border-4 border-white opacity-50 grayscale" data-alt="Locked greyed out achievement badge">
+<span class="material-symbols-outlined text-white text-4xl">lock</span>
+</div>
+</div>
+</aside>
+<!-- Center Mascot Area -->
+<div class="flex flex-col items-center justify-center">
+<!-- Speech Bubble -->
+<div class="relative speech-bubble bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-2xl max-w-md mb-12 border-4 border-primary/20">
+<p class="text-2xl font-bold text-slate-800 dark:text-white leading-relaxed">
+                        Hey there, Hero! 🍎🥦<br/>
+                        Have you eaten a <span class="text-orange-500">crunchy carrot</span> today? It gives you super sight! 🥕✨
+                    </p>
+</div>
+<!-- Mascot Image -->
+<div class="mascot-float relative">
+<div class="absolute -inset-4 bg-primary/20 blur-3xl rounded-full"></div>
+<div class="relative w-[400px] h-[400px] bg-center bg-no-repeat bg-contain" data-alt="A friendly blue mascot with large eyes and a smile wearing a chef hat" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCqJC6EaygrwuCxVZ2oxFsKm10SS1iKdYH6q6pTPU2V3v76u9RTD7xkwP2j_d4ijEdbX6rsVt15CvkkWKHW_qF2Y9glaCv21h29TPEhylfRPT2fd-H8OJqWC1K3c1z_xHHyu2jTflkfTSPZ2LhbpF483JKde6LTYi7nrvvkAVj5nU-3xuHnsWOhwaAw-HfOWqd7a2bORU1ET1HspFhMz_YQgZBPd3hz-0kL2f2EmV8ddR6JL8FjGBB_SjneukpjwRHvViBemdaHaQI");'>
+</div>
+</div>
+</div>
+<!-- Right Side Daily Quests -->
+<aside class="absolute right-8 top-1/2 -translate-y-1/2 w-72">
+<div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg rounded-3xl p-6 shadow-2xl border border-white/50">
+<h3 class="text-xl font-extrabold text-slate-800 dark:text-white mb-4">Daily Quests</h3>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-2xl border border-green-100 dark:border-green-800">
+<div class="size-10 bg-green-500 rounded-lg flex items-center justify-center text-white shrink-0">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-800 dark:text-white">Morning Apple</p>
+<p class="text-[10px] text-green-600 font-bold uppercase">Done! +50 XP</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-3 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/10">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white shrink-0">
+<span class="material-symbols-outlined">water_full</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-800 dark:text-white">Drink 4 Glasses</p>
+<p class="text-[10px] text-primary font-bold uppercase">2/4 Glasses</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+<div class="size-10 bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center text-slate-400 shrink-0">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-400 dark:text-slate-500">Eat Veggie Dinner</p>
+<p class="text-[10px] text-slate-400 font-bold uppercase">Locked</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-4 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all hover:-translate-y-1 active:translate-y-0">
+                        LOG A MEAL
+                    </button>
+</div>
+</aside>
+</main>
+<!-- Bottom Navigation -->
+<footer class="relative z-20 pb-12 flex justify-center">
+<div class="flex items-center gap-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl p-4 rounded-[2.5rem] shadow-2xl border border-white/40">
+<button class="flex flex-col items-center gap-1 group px-6 py-3 rounded-3xl hover:bg-white dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">map</span>
+<span class="text-xs font-bold text-slate-700 dark:text-slate-300">Adventure Map</span>
+</button>
+<div class="w-px h-12 bg-slate-300 dark:bg-slate-600"></div>
+<button class="flex flex-col items-center gap-1 group px-6 py-3 rounded-3xl hover:bg-white dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">collections_bookmark</span>
+<span class="text-xs font-bold text-slate-700 dark:text-slate-300">Sticker Book</span>
+</button>
+<div class="w-px h-12 bg-slate-300 dark:bg-slate-600"></div>
+<button class="flex flex-col items-center gap-1 group px-6 py-3 rounded-3xl hover:bg-white dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">sports_esports</span>
+<span class="text-xs font-bold text-slate-700 dark:text-slate-300">Mini Games</span>
+</button>
+<div class="w-px h-12 bg-slate-300 dark:bg-slate-600"></div>
+<button class="flex flex-col items-center gap-1 group px-6 py-3 rounded-3xl hover:bg-white dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">emoji_events</span>
+<span class="text-xs font-bold text-slate-700 dark:text-slate-300">Leaderboard</span>
+</button>
+</div>
+</footer>
+<!-- Decorative Floating Elements -->
+<div class="absolute top-1/4 left-1/4 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-9xl text-green-400 rotate-12">nutrition</span>
+</div>
+<div class="absolute bottom-1/3 right-1/4 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-8xl text-orange-400 -rotate-45">skillet</span>
+</div>
+<div class="absolute top-1/2 left-10 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-9xl text-primary animate-pulse">star</span>
+</div>
+</div>
+</body></html>
