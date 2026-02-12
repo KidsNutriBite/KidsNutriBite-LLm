@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-import heroIllustration from '../assets/hero-illustration.png';
+import heroIllustration from '../assets/pediatrician-home-service-smiling-woman-doctor-sitting-with-baby-girl-bed-checkup_726520-3200.jpg';
 
 const LandingPage = () => {
     return (

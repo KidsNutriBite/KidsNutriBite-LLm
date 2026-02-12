@@ -19,6 +19,22 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        title: {
+            type: String,
+            enum: ['Mr', 'Ms', 'Mrs'],
+            default: 'Mr', // Default for backward compatibility
+        },
+        profileImage: {
+            type: String,
+        },
+        phone: {
+            type: String,
+        },
+        address: {
+            city: String,
+            state: String,
+            country: String,
+        },
         role: {
             type: String,
             enum: ['parent', 'doctor'],

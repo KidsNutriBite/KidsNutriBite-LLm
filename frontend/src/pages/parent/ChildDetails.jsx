@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getProfileById as getProfile } from '../../api/profile.api';
@@ -65,6 +65,61 @@ const ChildDetails = () => {
         }
     };
 
+    // Analytics Calculations
+    const stats = useMemo(() => {
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        if (!meals || meals.length === 0) return { meals: 0, avgCal: 0, water: 0, streak: 0 };
+
+        const uniqueDays = new Set(meals.map(m => new Date(m.date).toISOString().split('T')[0]));
+
+        // Avg Calories (Daily Average)
+        const totalCals = meals.reduce((acc, m) => acc + (m.nutrients?.calories || 0), 0);
+        const avgCal = uniqueDays.size > 0 ? Math.round(totalCals / uniqueDays.size) : 0;
+
+        // Water (Today)
+        const waterToday = meals
+            .filter(m => new Date(m.date).toISOString().split('T')[0] === todayStr)
+            .reduce((acc, m) => acc + (m.waterIntake || 0), 0);
+
+        // Streak Calculation
+        let streak = 0;
+        let checkDate = new Date();
+        const checkDateStr = checkDate.toISOString().split('T')[0];
+
+        let hasToday = uniqueDays.has(checkDateStr);
+        let d = new Date(checkDate);
+
+        if (!hasToday) {
+            // Check yesterday
+            d.setDate(d.getDate() - 1);
+            const yesterdayStr = d.toISOString().split('T')[0];
+            if (uniqueDays.has(yesterdayStr)) {
+                hasToday = true;
+            }
+        }
+
+        if (hasToday) {
+            // Reset date to start checking backwards
+            let currentCheck = new Date(d);
+            // If we started from yesterday, currentCheck is yesterday. 
+            // If we started from today, currentCheck is today.
+
+            // Loop backwards
+            while (true) {
+                const dateStr = currentCheck.toISOString().split('T')[0];
+                if (uniqueDays.has(dateStr)) {
+                    streak++;
+                    currentCheck.setDate(currentCheck.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        return { meals: meals.length, avgCal, water: (waterToday / 1000).toFixed(1), streak };
+    }, [meals]);
+
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
     if (!profile) return null;
 
@@ -81,14 +136,19 @@ const ChildDetails = () => {
                 <div className="blob-bg top-0 right-0 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
 
                 <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
-                    <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center text-6xl shadow-md border-4 border-white/50">
-                        {/* Emoji Mapping */}
-                        {profile.avatar === 'lion' && '🦁'}
-                        {profile.avatar === 'bear' && '🐻'}
-                        {profile.avatar === 'rabbit' && '🐰'}
-                        {profile.avatar === 'fox' && '🦊'}
-                        {profile.avatar === 'cat' && '🐱'}
-                        {profile.avatar === 'dog' && '🐶'}
+                    <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-md border-4 border-white/50 overflow-hidden">
+                        {profile.profileImage ? (
+                            <img src={profile.profileImage} alt={profile.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-6xl">
+                                {profile.avatar === 'lion' && '🦁'}
+                                {profile.avatar === 'bear' && '🐻'}
+                                {profile.avatar === 'rabbit' && '🐰'}
+                                {profile.avatar === 'fox' && '🦊'}
+                                {profile.avatar === 'cat' && '🐱'}
+                                {profile.avatar === 'dog' && '🐶'}
+                            </span>
+                        )}
                     </div>
 
                     <div className="flex-1 text-center md:text-left">
@@ -104,10 +164,10 @@ const ChildDetails = () => {
                                 🎂 {profile.age} Years
                             </div>
                             <div className="bg-white/50 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 border border-white/60 shadow-sm">
-                                📏 {profile.height} cm
+                                {profile.height} cm
                             </div>
                             <div className="bg-white/50 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 border border-white/60 shadow-sm">
-                                ⚖️ {profile.weight} kg
+                                {profile.weight} kg
                             </div>
                         </div>
                     </div>
@@ -115,9 +175,8 @@ const ChildDetails = () => {
                     <div className="mt-4 md:mt-0">
                         <button
                             onClick={() => navigate(`/kids/${profile._id}/dashboard`)}
-                            className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black py-4 px-8 rounded-2xl shadow-lg shadow-orange-200 transform hover:scale-105 transition-all flex items-center gap-3 border-2 border-white/20"
+                            className="bg-gradient-to-r from-blue-400 to-green-500 text-white font-black py-4 px-8 rounded-2xl shadow-lg shadow-blue-200 transform hover:scale-105 transition-all flex items-center gap-3 border-2 border-white/20"
                         >
-                            <span className="text-2xl">🎮</span>
                             <div>
                                 <div className="text-xs font-bold opacity-90 uppercase tracking-wider">Switch to</div>
                                 <div className="text-lg leading-none">Kids Mode</div>
@@ -146,18 +205,18 @@ const ChildDetails = () => {
                         </button>
                     ))}
 
-                    {/* Quick Stats Widget (Mockup) */}
+                    {/* Streak Widget */}
                     <div className="mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-100 hidden lg:block">
                         <h4 className="font-bold text-blue-900 mb-4">Weekly Streak</h4>
                         <div className="flex justify-between items-end">
                             <div className="space-y-1">
-                                <div className="text-3xl font-black text-blue-600">3 Days</div>
+                                <div className="text-3xl font-black text-blue-600">{stats.streak} Days</div>
                                 <div className="text-xs text-blue-400 font-bold uppercase">Target: 5 Days</div>
                             </div>
                             <div className="text-4xl">🔥</div>
                         </div>
                         <div className="w-full bg-blue-200 h-2 rounded-full mt-4 overflow-hidden">
-                            <div className="bg-blue-500 h-full w-3/5 rounded-full"></div>
+                            <div className="bg-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min((stats.streak / 5) * 100, 100)}%` }}></div>
                         </div>
                     </div>
                 </div>
@@ -178,20 +237,17 @@ const ChildDetails = () => {
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                             <p className="text-xs text-gray-400 font-bold uppercase">Meals</p>
-                                            <p className="text-2xl font-black text-gray-800">{meals.length}</p>
+                                            <p className="text-2xl font-black text-gray-800">{stats.meals}</p>
                                         </div>
                                         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                             <p className="text-xs text-gray-400 font-bold uppercase">Avg Calories</p>
-                                            <p className="text-2xl font-black text-gray-800">450</p>
+                                            <p className="text-2xl font-black text-gray-800">{stats.avgCal}</p>
                                         </div>
                                         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                             <p className="text-xs text-gray-400 font-bold uppercase">Water</p>
-                                            <p className="text-2xl font-black text-gray-800">1.2L</p>
+                                            <p className="text-2xl font-black text-gray-800">{stats.water}L</p>
                                         </div>
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                                            <p className="text-xs text-gray-400 font-bold uppercase">Mood</p>
-                                            <p className="text-2xl font-black text-gray-800">😊</p>
-                                        </div>
+
                                     </div>
 
                                     {/* Recent Logs Section */}
@@ -216,26 +272,29 @@ const ChildDetails = () => {
                                         ) : (
                                             <div className="space-y-4">
                                                 {meals.map((meal) => (
-                                                    <div key={meal._id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 transition hover:shadow-md flex justify-between items-center group">
-                                                        <div className="flex items-start gap-4">
-                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${meal.mealType === 'Breakfast' ? 'bg-orange-100 text-orange-600' :
-                                                                meal.mealType === 'Lunch' ? 'bg-green-100 text-green-600' :
-                                                                    meal.mealType === 'Dinner' ? 'bg-indigo-100 text-indigo-600' :
-                                                                        'bg-gray-100 text-gray-600'
-                                                                }`}>
-                                                                {meal.mealType === 'Breakfast' && '🍳'}
-                                                                {meal.mealType === 'Lunch' && '🥗'}
-                                                                {meal.mealType === 'Dinner' && '🍲'}
-                                                                {meal.mealType === 'Snack' && '🍎'}
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="font-bold text-lg text-gray-900">{meal.foodItems.map(i => i.name).join(', ')}</h4>
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{meal.mealType}</span>
-                                                                    <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                                                    <span className="text-xs text-gray-400">{new Date(meal.date).toLocaleDateString()}</span>
+                                                    <div key={meal._id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 transition hover:shadow-md flex justify-between items-center group">
+                                                        <div className="flex items-center gap-4">
+                                                            {meal.photoUrl ? (
+                                                                <img src={meal.photoUrl} alt="Meal" className="w-16 h-16 rounded-xl object-cover border border-gray-100" />
+                                                            ) : (
+                                                                <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-2xl ${meal.mealType === 'breakfast' ? 'bg-orange-100 text-orange-600' :
+                                                                    meal.mealType === 'lunch' ? 'bg-green-100 text-green-600' :
+                                                                        meal.mealType === 'dinner' ? 'bg-indigo-100 text-indigo-600' :
+                                                                            'bg-gray-100 text-gray-600'
+                                                                    }`}>
+                                                                    {meal.mealType === 'breakfast' && '🍳'}
+                                                                    {meal.mealType === 'lunch' && '🥗'}
+                                                                    {meal.mealType === 'dinner' && '🍲'}
+                                                                    {meal.mealType === 'snack' && '🍎'}
                                                                 </div>
-                                                                {meal.notes && <p className="text-sm text-gray-500 mt-2 italic">"{meal.notes}"</p>}
+                                                            )}
+                                                            <div>
+                                                                <h4 className="font-bold text-lg text-gray-900 capitalize">{meal.mealType}</h4>
+                                                                <p className="text-sm text-gray-500">{meal.foodItems.map(i => i.name).join(', ')}</p>
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    <span className="text-xs font-bold text-gray-400">{new Date(meal.date).toLocaleDateString()} at {meal.time || 'N/A'}</span>
+                                                                    {meal.nutrients?.calories && <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600 font-bold">{meal.nutrients.calories} kcal</span>}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div className="flex gap-2">
@@ -303,6 +362,7 @@ const ChildDetails = () => {
                 isOpen={isLogModalOpen}
                 onClose={() => setIsLogModalOpen(false)}
                 title={`Log Meal for ${profile.name}`}
+                maxWidth="max-w-5xl"
             >
                 <MealLogForm
                     profileId={id}

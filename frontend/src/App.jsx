@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -15,10 +16,16 @@ import PatientDetails from './pages/doctor/PatientDetails';
 import KidsLayout from './layouts/KidsLayout';
 import KidsDashboard from './pages/kids/KidsDashboard';
 import ComingSoon from './pages/common/ComingSoon';
+import PediatricianDirectory from './pages/parent/Directory';
+import BookAppointment from './pages/parent/BookAppointment';
+import MyAppointments from './pages/parent/MyAppointments';
+import ParentProfile from './pages/parent/ParentProfile';
+import DoctorAccess from './pages/parent/DoctorAccess';
 
 function App() {
     return (
         <AuthProvider>
+            <Toaster position="top-center" />
             <Router>
                 <Routes>
                     {/* Public Routes */}
@@ -30,17 +37,15 @@ function App() {
 
                     {/* Parent Routes */}
                     <Route element={<ProtectedRoute allowedRoles={['parent']} />}>
-                        import ComingSoon from './pages/common/ComingSoon';
-
-                        // ... (keep existing imports)
-
-                        // Inside Parent Routes:
                         <Route path="/parent" element={<ParentLayout />}>
                             <Route path="dashboard" element={<ParentDashboard />} />
                             <Route path="child/:id" element={<ChildDetails />} />
                             <Route path="resources" element={<ComingSoon title="Resources Library" description="Access nutrition guides, recipes, and parenting tips coming soon!" />} />
-                            <Route path="messages" element={<ComingSoon title="Messages" description="Chat with nutritionists and doctors directly from here." />} />
-                            <Route path="directory" element={<ComingSoon title="Pediatrician Directory" description="Find and connect with top child specialists near you." />} />
+                            <Route path="access" element={<DoctorAccess />} />
+                            <Route path="directory" element={<PediatricianDirectory />} />
+                            <Route path="book-appointment/:hospitalId" element={<BookAppointment />} />
+                            <Route path="my-appointments" element={<MyAppointments />} />
+                            <Route path="profile" element={<ParentProfile />} />
                         </Route>
                     </Route>
 

@@ -134,15 +134,23 @@ const ParentDashboard = () => {
                                 </span>
                             </div>
                             <div className="mx-auto w-32 h-32 relative mb-6 cursor-pointer" onClick={() => navigate(`/parent/child/${profile._id}`)}>
-                                <div className="w-full h-full bg-center bg-gray-100 flex items-center justify-center text-6xl rounded-full ring-4 ring-primary/10 group-hover:ring-primary/40 transition-all duration-300">
-                                    {profile.avatar === 'lion' && '🦁'}
-                                    {profile.avatar === 'rabbit' && '🐰'}
-                                    {profile.avatar === 'bear' && '🐻'}
-                                    {profile.avatar === 'fox' && '🦊'}
-                                    {profile.avatar === 'cat' && '🐱'}
-                                    {profile.avatar === 'dog' && '🐶'}
-                                    {!['lion', 'rabbit', 'bear', 'fox', 'cat', 'dog'].includes(profile.avatar) && '👶'}
-                                </div>
+                                {profile.profileImage ? (
+                                    <img
+                                        src={profile.profileImage}
+                                        alt={profile.name}
+                                        className="w-full h-full rounded-full object-cover shadow-sm ring-4 ring-primary/10 group-hover:ring-primary/40 transition-all duration-300"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-center bg-gray-100 flex items-center justify-center text-6xl rounded-full ring-4 ring-primary/10 group-hover:ring-primary/40 transition-all duration-300">
+                                        {profile.avatar === 'lion' && '🦁'}
+                                        {profile.avatar === 'rabbit' && '🐰'}
+                                        {profile.avatar === 'bear' && '🐻'}
+                                        {profile.avatar === 'fox' && '🦊'}
+                                        {profile.avatar === 'cat' && '🐱'}
+                                        {profile.avatar === 'dog' && '🐶'}
+                                        {!['lion', 'rabbit', 'bear', 'fox', 'cat', 'dog'].includes(profile.avatar) && '👶'}
+                                    </div>
+                                )}
                                 <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-white p-2 rounded-full shadow-lg">
                                     <span className="material-symbols-outlined text-lg">electric_bolt</span>
                                 </div>
@@ -177,10 +185,16 @@ const ParentDashboard = () => {
                 <div className="bg-gradient-to-br from-indigo-500 to-primary p-6 rounded-2xl text-white">
                     <div className="flex justify-between items-start mb-4">
                         <span className="material-symbols-outlined text-3xl">lightbulb</span>
-                        <span className="text-xs font-bold bg-white/20 px-2 py-1 rounded">DAILY TIP</span>
+                        <span className="text-xs font-bold bg-white/20 px-2 py-1 rounded">
+                            {profiles[0]?.tips?.[0]?.tag || 'DAILY'} TIP
+                        </span>
                     </div>
-                    <h4 className="text-xl font-extrabold mb-2">Encourage "Rainbow Eating"</h4>
-                    <p className="text-white/80 leading-relaxed font-medium">Try to include at least 3 different colors of vegetables in dinner today to boost antioxidant intake!</p>
+                    <h4 className="text-xl font-extrabold mb-2">
+                        {profiles[0] ? `For ${profiles[0].name}:` : 'Healthy Eating'}
+                    </h4>
+                    <p className="text-white/80 leading-relaxed font-medium">
+                        {profiles[0]?.tips?.[0]?.text || "Try to include at least 3 different colors of vegetables in dinner today to boost antioxidant intake!"}
+                    </p>
                 </div>
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-6">
                     <div className="bg-green-100 text-green-600 dark:bg-green-900/30 p-4 rounded-xl">
@@ -189,9 +203,9 @@ const ParentDashboard = () => {
                     <div>
                         <h4 className="text-slate-900 dark:text-white font-extrabold">Pediatrician Directory</h4>
                         <p className="text-slate-500 mb-2">Find specialists and nutritionists near you.</p>
-                        <a href="#" className="text-primary font-bold flex items-center gap-1 text-sm hover:underline">
+                        <button onClick={() => navigate('/parent/directory')} className="text-primary font-bold flex items-center gap-1 text-sm hover:underline bg-transparent border-none p-0 cursor-pointer">
                             Search nearby <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>

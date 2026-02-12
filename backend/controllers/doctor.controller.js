@@ -1,9 +1,28 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
-import User from '../models/User.model.js';
-import DoctorAccess from '../models/DoctorAccess.model.js';
-import Profile from '../models/Profile.model.js';
-import MealLog from '../models/MealLog.model.js';
+import { findNearbyDoctors } from '../services/location.service.js';
+import {
+    requestAccess as requestAccessService,
+    getMyPatients as getMyPatientsService,
+    getPatientDetails as getPatientDetailsService,
+    updateHealthNotes as updateHealthNotesService
+} from '../services/doctor.service.js';
+
+// @desc    Find nearby pediatricians (Public/Parent)
+// @route   GET /api/doctor/nearby
+// @access  Private (Parent)
+export const getNearbyDoctors = asyncHandler(async (req, res) => {
+    const { lat, lng, radius } = req.query;
+
+    if (!lat || !lng) {
+        res.status(400);
+        throw new Error('Latitude and Longitude are required');
+    }
+
+    const doctors = await findNearbyDoctors(lat, lng, radius);
+
+    res.status(200).json(new ApiResponse(200, doctors));
+});
 
 // @desc    Request access to a parent's children (via Email)
 // @route   POST /api/doctor/request-access
@@ -16,51 +35,16 @@ export const requestAccess = asyncHandler(async (req, res) => {
         throw new Error('Parent email is required');
     }
 
-    // 1. Find Parent by Email
-    const parent = await User.findOne({ email, role: 'parent' });
-    if (!parent) {
-        res.status(404);
-        throw new Error('Parent not found with that email');
-    }
+    const result = await requestAccessService(req.user._id, email);
 
-    // 2. Check for existing pending/active request (Generalized for Parent)
-    // We check if there's already a PENDING request for this parent without a specific profile
-    const existingRequest = await DoctorAccess.findOne({
-        doctorId: req.user._id,
-        parentId: parent._id,
-        profileId: null, // Initial request is generic
-        status: 'pending'
-    });
-
-    if (existingRequest) {
-        res.status(400);
-        throw new Error('Request already pending for this parent');
-    }
-
-    // 3. Create Request
-    const request = await DoctorAccess.create({
-        doctorId: req.user._id,
-        parentId: parent._id,
-        status: 'pending' // Defaults to pending, profileId null
-    });
-
-    res.status(201).json(new ApiResponse(201, request, 'Access request sent to parent'));
+    res.status(201).json(new ApiResponse(201, result));
 });
 
 // @desc    Get all active patients
 // @route   GET /api/doctor/patients
 // @access  Private (Doctor)
 export const getMyPatients = asyncHandler(async (req, res) => {
-    // Find all ACTIVE access records
-    const accessRecords = await DoctorAccess.find({
-        doctorId: req.user._id,
-        status: 'active',
-        profileId: { $ne: null } // Must be linked to a profile
-    }).populate('profileId');
-
-    // Map to list of profiles
-    const patients = accessRecords.map(record => record.profileId);
-
+    const patients = await getMyPatientsService(req.user._id);
     res.status(200).json(new ApiResponse(200, patients));
 });
 
@@ -68,11 +52,21 @@ export const getMyPatients = asyncHandler(async (req, res) => {
 // @route   GET /api/doctor/patients/:id
 // @access  Private (Doctor)
 export const getPatientDetails = asyncHandler(async (req, res) => {
-    // Middleware `checkDoctorAccess` already verified access and fetched profile
-    // We fetch meals here manually to ensure read-only
-    const profile = req.profile;
+    // Service handles Audit Logging and Access Validation
+    const data = await getPatientDetailsService(req.user._id, req.params.id);
+    res.status(200).json(new ApiResponse(200, data));
+});
 
-    const meals = await MealLog.find({ profileId: profile._id }).sort({ date: -1 }).limit(20);
+// @desc    Update patient health notes
+// @route   PATCH /api/doctor/patients/:id/notes
+// @access  Private (Doctor)
+export const updatePatientNotes = asyncHandler(async (req, res) => {
+    const { notes } = req.body;
+    if (!notes) {
+        res.status(400);
+        throw new Error('Notes are required');
+    }
 
-    res.status(200).json(new ApiResponse(200, { profile, meals }));
+    const result = await updateHealthNotesService(req.user._id, req.params.id, notes);
+    res.status(200).json(new ApiResponse(200, result));
 });

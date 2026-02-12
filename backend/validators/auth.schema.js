@@ -17,6 +17,7 @@ const doctorSchema = z.object({
 });
 
 const baseUserSchema = z.object({
+    title: z.enum(['Mr', 'Ms', 'Mrs']),
     name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters'),

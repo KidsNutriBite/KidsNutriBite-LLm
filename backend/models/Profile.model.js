@@ -43,9 +43,29 @@ const profileSchema = new mongoose.Schema(
             required: true, // Mandatory avatar for UI/Kids Mode
             default: 'lion', // Default avatar
         },
-        conditions: {
-            type: [String], // e.g., 'diabetes', 'celiac'
+        profileImage: {
+            type: String, // URL to uploaded image
+        },
+        location: {
+            city: { type: String },
+            state: { type: String },
+            coordinates: {
+                lat: { type: Number },
+                lng: { type: Number }
+            }
+        },
+        healthConditions: {
+            type: [String],
+            // enum restriction removed to allow custom conditions
             default: [],
+        },
+        medicalReports: {
+            type: [String], // Array of URLs/Paths
+            default: []
+        },
+        healthNotes: {
+            type: String, // Doctor's notes
+            default: ''
         },
     },
     { timestamps: true }

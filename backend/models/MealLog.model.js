@@ -1,17 +1,12 @@
 import mongoose from 'mongoose';
 
 const foodItemSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    quantity: {
-        type: String, // e.g., "1 cup", "100g"
-        required: true,
-    },
-    calories: {
-        type: Number, // Optional placeholder for AI calculation later
-    }
+    name: { type: String, required: true },
+    quantity: { type: String, required: true },
+    calories: { type: Number, default: 0 },
+    protein: { type: Number, default: 0 },
+    carbs: { type: Number, default: 0 },
+    fats: { type: Number, default: 0 }
 }, { _id: false });
 
 const mealLogSchema = new mongoose.Schema(
@@ -26,26 +21,34 @@ const mealLogSchema = new mongoose.Schema(
             required: true,
             default: Date.now,
         },
+        time: {
+            type: String, // e.g. "08:30 AM"
+        },
         mealType: {
             type: String,
-            enum: ['breakfast', 'lunch', 'dinner', 'snack'],
+            enum: ['breakfast', 'lunch', 'dinner', 'snack', 'water'],
             required: true,
         },
         foodItems: {
-            type: [foodItemSchema], // Array of structured objects
-            required: true,
-            validate: [
-                (val) => val.length > 0,
-                'Meal must contain at least one food item'
-            ]
+            type: [foodItemSchema],
+            default: []
+        },
+        waterIntake: {
+            type: Number, // in ml
+            default: 0
         },
         notes: {
             type: String,
             trim: true,
         },
         photoUrl: {
-            type: String, // Value for future image upload feature
+            type: String,
         },
+        nutrients: {
+            type: Map,
+            of: Number, // e.g., { 'calories': 250, 'protein': 10 }
+            default: {}
+        }
     },
     { timestamps: true }
 );

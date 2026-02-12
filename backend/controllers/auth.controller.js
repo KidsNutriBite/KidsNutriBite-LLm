@@ -19,7 +19,7 @@ export const registerUser = asyncHandler(async (req, res) => {
         throw new Error(validation.error.errors[0].message);
     }
 
-    const { name, email, password, role, ...roleData } = validation.data;
+    const { name, email, password, role, title, ...roleData } = validation.data;
 
     const userExists = await User.findOne({ email });
 
@@ -28,12 +28,20 @@ export const registerUser = asyncHandler(async (req, res) => {
         throw new Error('User already exists');
     }
 
+    // Default Avatar Logic
+    let profileImage = 'https://avatar.iran.liara.run/public';
+    if (title === 'Mr') profileImage = 'https://avatar.iran.liara.run/public/boy';
+    else if (['Ms', 'Mrs'].includes(title)) profileImage = 'https://avatar.iran.liara.run/public/girl';
+
     // Construct user object based on role
     const userData = {
         name,
         email,
         password,
         role,
+        title,
+        profileImage,
+        phone: roleData.phoneNumber || '', // Sync phone to root
     };
 
     if (role === 'parent') {

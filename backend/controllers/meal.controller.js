@@ -3,21 +3,61 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
 import { mealLogSchema } from '../validators/profile.schema.js';
 
+import { uploadFile } from '../services/storage.service.js';
+
 // @desc    Log a new meal
 // @route   POST /api/meals
 // @access  Private (Parent)
 export const logMeal = asyncHandler(async (req, res) => {
-    const validation = mealLogSchema.safeParse(req.body);
+    // 1. Handle File Upload
+    let photoUrl = null;
+    if (req.files && req.files.length > 0) {
+        const file = req.files.find(f => f.fieldname === 'photo');
+        if (file) {
+            const baseUrl = `${req.protocol}://${req.get('host')}/uploads`;
+            const filename = await uploadFile(file);
+            photoUrl = `${baseUrl}/${filename}`;
+        }
+    }
+
+    // 2. Prepare Data (Parse JSON strings from FormData)
+    let bodyData = { ...req.body };
+
+    // FormData sends arrays/objects as strings
+    if (typeof bodyData.foodItems === 'string') {
+        try {
+            bodyData.foodItems = JSON.parse(bodyData.foodItems);
+        } catch (e) {
+            console.error("Failed to parse foodItems", e);
+            bodyData.foodItems = [];
+        }
+    }
+
+    if (typeof bodyData.nutrients === 'string') {
+        try {
+            bodyData.nutrients = JSON.parse(bodyData.nutrients);
+        } catch (e) {
+            bodyData.nutrients = {};
+        }
+    }
+
+    if (bodyData.waterIntake) {
+        bodyData.waterIntake = Number(bodyData.waterIntake);
+    }
+
+    // 3. Validate
+    const validation = mealLogSchema.safeParse(bodyData);
 
     if (!validation.success) {
         res.status(400);
         throw new Error(validation.error.errors[0].message);
     }
 
-    // Ownership middleware ensures access to profileId
-
+    // 4. Create Meal
     const meal = await MealLog.create({
-        ...validation.data
+        ...validation.data,
+        photoUrl: photoUrl, // Use uploaded URL
+        nutrients: validation.data.nutrients || {}
     });
 
     res.status(201).json(new ApiResponse(201, meal, 'Meal logged successfully'));
