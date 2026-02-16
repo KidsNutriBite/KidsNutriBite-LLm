@@ -7,6 +7,7 @@ import { getMealFrequency, getPrescriptions } from '../../api/analytics.api';
 import MealLogForm from '../../components/parent/MealLogForm';
 import Modal from '../../components/common/Modal';
 import MealFrequencyChart from '../../components/charts/MealFrequencyChart';
+import TipCard from '../../components/common/TipCard';
 
 const ChildDetails = () => {
     const { id } = useParams();
@@ -233,6 +234,11 @@ const ChildDetails = () => {
                         >
                             {activeTab === 'overview' && (
                                 <div className="space-y-8">
+                                    {/* Daily Tip */}
+                                    <div className="w-full">
+                                        <TipCard tip={profile.tips?.[0]} childName={profile.name} />
+                                    </div>
+
                                     {/* Stats Row */}
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">

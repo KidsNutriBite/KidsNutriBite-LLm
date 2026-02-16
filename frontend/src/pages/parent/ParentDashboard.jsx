@@ -7,6 +7,8 @@ import useAuth from '../../hooks/useAuth';
 import Modal from '../../components/common/Modal';
 import AddProfileForm from '../../components/parent/AddProfileForm';
 import { motion, AnimatePresence } from 'framer-motion';
+import TipCard from '../../components/common/TipCard';
+import NutriGuideChat from '../../components/parent/chat/NutriGuideChat';
 
 const ParentDashboard = () => {
     const { user } = useAuth();
@@ -16,6 +18,7 @@ const ParentDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedProfileForAccess, setSelectedProfileForAccess] = useState('');
+    const [view, setView] = useState('dashboard'); // 'dashboard' | 'chat'
 
     useEffect(() => {
         fetchData();
@@ -64,12 +67,43 @@ const ParentDashboard = () => {
     };
 
 
+    // AI Chat View
+    if (view === 'chat') {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="fixed inset-0 z-[100] bg-white dark:bg-slate-900"
+            >
+                <div className="h-full w-full flex flex-col">
+                    <NutriGuideChat onBack={() => setView('dashboard')} />
+                </div>
+            </motion.div>
+        );
+    }
+
     return (
         <div>
             {/* Welcome Section */}
-            <div className="mb-8">
-                <h1 className="text-slate-900 dark:text-white text-4xl font-black tracking-tight mb-2">Welcome back, {user?.name?.split(' ')[0]}! 👋</h1>
-                <p className="text-slate-500 dark:text-slate-400 text-lg">Here's a look at how your little ones are growing today.</p>
+            <div className="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+                <div>
+                    <h1 className="text-slate-900 dark:text-white text-4xl font-black tracking-tight mb-2">Welcome back, {user?.name?.split(' ')[0]}! 👋</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-lg">Here's a look at how your little ones are growing today.</p>
+                </div>
+
+                <button
+                    onClick={() => setView('chat')}
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white pl-4 pr-6 py-3 rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center gap-3 transition-all transform hover:scale-105 active:scale-95 group"
+                >
+                    <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:rotate-12 transition-transform">
+                        <span className="material-symbols-outlined text-2xl text-white">smart_toy</span>
+                    </div>
+                    <div className="text-left">
+                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">AI Companion</p>
+                        <p className="text-sm font-bold leading-none">Open NutriGuide</p>
+                    </div>
+                </button>
             </div>
 
             {/* Doctor Notification Banner */}
@@ -182,20 +216,14 @@ const ParentDashboard = () => {
 
             {/* Nutritional Tips / Directory Quick Links */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-br from-indigo-500 to-primary p-6 rounded-2xl text-white">
-                    <div className="flex justify-between items-start mb-4">
-                        <span className="material-symbols-outlined text-3xl">lightbulb</span>
-                        <span className="text-xs font-bold bg-white/20 px-2 py-1 rounded">
-                            {profiles[0]?.tips?.[0]?.tag || 'DAILY'} TIP
-                        </span>
-                    </div>
-                    <h4 className="text-xl font-extrabold mb-2">
-                        {profiles[0] ? `For ${profiles[0].name}:` : 'Healthy Eating'}
-                    </h4>
-                    <p className="text-white/80 leading-relaxed font-medium">
-                        {profiles[0]?.tips?.[0]?.text || "Try to include at least 3 different colors of vegetables in dinner today to boost antioxidant intake!"}
-                    </p>
-                </div>
+                <TipCard
+                    tip={{
+                        text: "Encourage your child to drink water before playing to stay super fast! ⚡",
+                        tag: "General Tip",
+                        explanation: "Hydration is crucial for energy and cognitive function. Establishing a habit of drinking water before activity prevents dehydration and improves stamina."
+                    }}
+                    childName={null}
+                />
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-6">
                     <div className="bg-green-100 text-green-600 dark:bg-green-900/30 p-4 rounded-xl">
                         <span className="material-symbols-outlined text-3xl">local_hospital</span>

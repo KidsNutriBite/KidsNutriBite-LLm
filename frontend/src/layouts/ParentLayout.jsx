@@ -83,36 +83,44 @@ const ParentLayout = () => {
                         <span className="material-symbols-outlined">{showMobileMenu ? 'close' : 'menu'}</span>
                     </button>
 
-                    <div className="bg-primary p-2 rounded-lg text-white">
-                        <span className="material-symbols-outlined text-3xl">child_care</span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-md shadow-primary/40">
+                        <span className="material-symbols-outlined">nutrition</span>
                     </div>
                     <Link to="/parent/dashboard" className="text-slate-900 dark:text-white text-2xl font-extrabold tracking-tight hidden sm:block">NutriKid</Link>
                     <Link to="/parent/dashboard" className="text-slate-900 dark:text-white text-xl font-extrabold tracking-tight sm:hidden">NutriKid</Link>
                 </div>
 
                 {/* Desktop Nav */}
-                <nav className="hidden md:flex items-center gap-8">
+                <nav className="hidden md:flex items-center gap-2">
                     <Link
                         to="/parent/dashboard"
-                        className={isActive('/parent/dashboard') ? "text-primary text-sm font-bold leading-normal border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors"}
+                        className={isActive('/parent/dashboard')
+                            ? "bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 transition-all"
+                            : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary px-5 py-2.5 transition-colors"}
                     >
                         Home
                     </Link>
                     <Link
                         to="/parent/resources"
-                        className={isActive('/parent/resources') ? "text-primary text-sm font-bold leading-normal border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors"}
+                        className={isActive('/parent/resources')
+                            ? "bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 transition-all"
+                            : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary px-5 py-2.5 transition-colors"}
                     >
                         Resources
                     </Link>
                     <Link
                         to="/parent/access"
-                        className={isActive('/parent/access') ? "text-primary text-sm font-bold leading-normal border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors"}
+                        className={isActive('/parent/access')
+                            ? "bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 transition-all"
+                            : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary px-5 py-2.5 transition-colors"}
                     >
                         Doctor Access
                     </Link>
                     <Link
                         to="/parent/directory"
-                        className={isActive('/parent/directory') ? "text-primary text-sm font-bold leading-normal border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors"}
+                        className={isActive('/parent/directory')
+                            ? "bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 transition-all"
+                            : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary px-5 py-2.5 transition-colors"}
                     >
                         Directory
                     </Link>
@@ -184,20 +192,32 @@ const ParentLayout = () => {
                         </div>
 
                         {showProfileDropdown && (
-                            <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50">
-                                <Link
-                                    to="/parent/profile"
-                                    onClick={() => setShowProfileDropdown(false)}
-                                    className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                                >
-                                    My Profile
-                                </Link>
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-slate-100 dark:border-slate-700"
-                                >
-                                    Sign Out
-                                </button>
+                            <div className="absolute right-0 mt-4 w-60 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 ring-1 ring-black/5 animate-in fade-in zoom-in duration-200 origin-top-right">
+                                <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name}</p>
+                                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                                </div>
+                                <div className="p-2">
+                                    <Link
+                                        to="/parent/profile"
+                                        onClick={() => setShowProfileDropdown(false)}
+                                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-primary/5 hover:text-primary rounded-xl transition-all group"
+                                    >
+                                        <div className="p-1.5 rounded-lg bg-slate-100 text-slate-500 group-hover:bg-primary group-hover:text-white transition-colors">
+                                            <span className="material-symbols-outlined text-lg">person</span>
+                                        </div>
+                                        My Profile
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all mt-1 group"
+                                    >
+                                        <div className="p-1.5 rounded-lg bg-red-50 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                                            <span className="material-symbols-outlined text-lg">logout</span>
+                                        </div>
+                                        Sign Out
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

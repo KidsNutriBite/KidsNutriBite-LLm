@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import LoadingState from '../../components/common/LoadingState';
+import { indianLocations } from '../../data/indianLocations';
 
 const PediatricianDirectory = () => {
     const navigate = useNavigate();
@@ -10,11 +11,21 @@ const PediatricianDirectory = () => {
     const [error, setError] = useState(null);
     const [sortBy, setSortBy] = useState('distance'); // 'distance' | 'rating'
 
+    // Location Filter State
+    const [searchMode, setSearchMode] = useState('current'); // 'current' | 'manual'
+    const [selectedState, setSelectedState] = useState('');
+    const [selectedCity, setSelectedCity] = useState('');
+    const [searchRadius, setSearchRadius] = useState(10); // km
+
+    const availableCities = selectedState
+        ? indianLocations.find(s => s.state === selectedState)?.cities || []
+        : [];
+
     const fetchHospitals = async (lat, lng) => {
         setLoading(true);
         setError(null);
         try {
-            const { data } = await api.get(`/hospitals/nearby?lat=${lat}&lng=${lng}&radius=20`);
+            const { data } = await api.get(`/hospitals/nearby?lat=${lat}&lng=${lng}&radius=${searchRadius}`);
             setHospitals(data.data || []);
         } catch (err) {
             console.error(err);
@@ -25,6 +36,10 @@ const PediatricianDirectory = () => {
     };
 
     const handleGeolocation = () => {
+        setSearchMode('current');
+        setSelectedState('');
+        setSelectedCity('');
+
         if (!navigator.geolocation) {
             setError('Geolocation is not supported by your browser');
             return;
@@ -43,6 +58,12 @@ const PediatricianDirectory = () => {
         );
     };
 
+    const handleManualLocationSearch = (cityData) => {
+        if (!cityData) return;
+        setSearchMode('manual');
+        fetchHospitals(cityData.lat, cityData.lng);
+    };
+
     // Sorting Logic
     const sortedHospitals = [...hospitals].sort((a, b) => {
         if (sortBy === 'rating') {
@@ -59,18 +80,99 @@ const PediatricianDirectory = () => {
                 <p className="text-gray-600">Find the best pediatric care for your child nearby.</p>
             </header>
 
-            {/* Initial Search Button - Only show if no results and not loading (and no error yet/reset) */}
-            {!loading && hospitals.length === 0 && (
-                <div className="flex justify-center mb-10">
-                    <button
-                        onClick={handleGeolocation}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl font-bold text-lg"
-                    >
-                        <span className="material-symbols-outlined">my_location</span>
-                        Search Nearby Hospitals
-                    </button>
+            {/* Search Controls */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+                <div className="flex flex-col md:flex-row gap-6">
+                    {/* Mode Selection */}
+                    <div className="flex flex-col gap-3 min-w-[200px]">
+                        <label className="text-sm font-bold text-slate-500 uppercase">Search Method</label>
+                        <div className="flex bg-slate-100 p-1 rounded-xl">
+                            <button
+                                onClick={handleGeolocation}
+                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${searchMode === 'current' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                <span className="material-symbols-outlined text-lg">my_location</span>
+                                Current
+                            </button>
+                            <button
+                                onClick={() => setSearchMode('manual')}
+                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${searchMode === 'manual' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                <span className="material-symbols-outlined text-lg">map</span>
+                                Manual
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Dynamic Inputs */}
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {searchMode === 'manual' ? (
+                            <>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 ml-1">State</label>
+                                    <select
+                                        value={selectedState}
+                                        onChange={(e) => {
+                                            setSelectedState(e.target.value);
+                                            setSelectedCity(''); // Reset city when state changes
+                                        }}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700"
+                                    >
+                                        <option value="">Select State</option>
+                                        {indianLocations.map((loc) => (
+                                            <option key={loc.state} value={loc.state}>{loc.state}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-slate-500 ml-1">City / Village</label>
+                                    <select
+                                        value={selectedCity}
+                                        onChange={(e) => {
+                                            const cityName = e.target.value;
+                                            setSelectedCity(cityName);
+                                            const cityData = availableCities.find(c => c.name === cityName);
+                                            if (cityData) handleManualLocationSearch(cityData);
+                                        }}
+                                        disabled={!selectedState}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <option value="">Select City</option>
+                                        {availableCities.map((city) => (
+                                            <option key={city.name} value={city.name}>{city.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="md:col-span-2 flex items-center h-full pt-6">
+                                <p className="text-slate-500 text-sm flex items-center gap-2 bg-blue-50 p-3 rounded-lg w-full border border-blue-100">
+                                    <span className="material-symbols-outlined text-blue-500">info</span>
+                                    Using your browser's current location to find nearby clinics.
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-500 ml-1">Search Radius: {searchRadius} km</label>
+                            <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl h-[48px]">
+                                <span className="text-xs font-bold text-slate-400">5km</span>
+                                <input
+                                    type="range"
+                                    min="5"
+                                    max="50"
+                                    step="5"
+                                    value={searchRadius}
+                                    onChange={(e) => setSearchRadius(Number(e.target.value))}
+                                    className="flex-1 accent-blue-600 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-slate-400">50km</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            )}
+            </div>
 
             {/* Error State */}
             {error && (
@@ -94,12 +196,7 @@ const PediatricianDirectory = () => {
 
                         <div className="flex items-center gap-4">
                             {/* Re-search button (Small) */}
-                            <button
-                                onClick={handleGeolocation}
-                                className="text-sm text-blue-600 font-semibold hover:underline flex items-center gap-1"
-                            >
-                                <span className="material-symbols-outlined text-lg">refresh</span> Update Location
-                            </button>
+
 
                             <div className="flex items-center gap-2">
                                 <label htmlFor="sort" className="text-sm font-semibold text-gray-600">Sort by:</label>

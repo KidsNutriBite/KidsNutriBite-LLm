@@ -119,6 +119,27 @@ const KidsDashboard = () => {
                     <div className="lg:col-span-3 space-y-8">
                         <ProfileCard profile={profile} level={level} currentXP={currentXP} />
 
+                        {/* Talk to Food Buddy Call-to-Action */}
+                        <div className="relative group cursor-pointer" onClick={() => setView('chat')}>
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-[2.5rem] blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
+                            <div className="relative bg-white rounded-[2.5rem] p-6 shadow-xl flex flex-col md:flex-row lg:flex-col xl:flex-row items-center gap-4 border border-white/50 text-center md:text-left lg:text-center xl:text-left">
+                                <div className="relative">
+                                    <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center text-4xl shadow-lg border-4 border-white">
+                                        🥦
+                                    </div>
+                                    <div className="absolute top-0 right-0 w-5 h-5 bg-green-400 border-2 border-white rounded-full animate-bounce"></div>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">AI COMPANION</p>
+                                    <h3 className="text-xl font-black text-slate-800 leading-none mb-1">Food Buddy</h3>
+                                    <p className="text-xs font-bold text-blue-500">Online • Ready!</p>
+                                </div>
+                                <button className="bg-blue-500 text-white p-3 rounded-full shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                                    <span className="material-symbols-outlined text-xl">chat_bubble</span>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
 
                     {/* Middle Column: Mission & Quests (5 cols) */}
@@ -140,26 +161,7 @@ const KidsDashboard = () => {
                             <RecentWins />
                         </div>
 
-                        {/* Talk to Food Buddy Call-to-Action */}
-                        <div className="relative group cursor-pointer" onClick={() => setView('chat')}>
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-[2.5rem] blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
-                            <div className="relative bg-white rounded-[2.5rem] p-6 shadow-2xl flex items-center gap-6 border border-white/50">
-                                <div className="relative">
-                                    <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center text-4xl shadow-lg border-4 border-white">
-                                        🥦
-                                    </div>
-                                    <div className="absolute top-0 right-0 w-5 h-5 bg-green-400 border-2 border-white rounded-full animate-bounce"></div>
-                                </div>
-                                <div className="flex-1 text-left">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">AI COMPANION</p>
-                                    <h3 className="text-2xl font-black text-slate-800 leading-none mb-1">Food Buddy</h3>
-                                    <p className="text-sm font-bold text-blue-500">Online • Ready to chat!</p>
-                                </div>
-                                <button className="bg-blue-500 text-white p-4 rounded-full shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
-                                    <span className="material-symbols-outlined text-2xl">chat_bubble</span>
-                                </button>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </main>
