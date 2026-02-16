@@ -77,7 +77,7 @@ const ParentDashboard = () => {
                 className="fixed inset-0 z-[100] bg-white dark:bg-slate-900"
             >
                 <div className="h-full w-full flex flex-col">
-                    <NutriGuideChat onBack={() => setView('dashboard')} />
+                    <NutriGuideChat onBack={() => setView('dashboard')} profiles={profiles} />
                 </div>
             </motion.div>
         );

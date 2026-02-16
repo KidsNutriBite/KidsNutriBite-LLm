@@ -20,7 +20,7 @@ const FoodBuddyChatInterface = ({ onBack, profile }) => {
 
     useEffect(scrollToBottom, [messages, isTyping]);
 
-    const handleSend = (text) => {
+    const handleSend = async (text) => {
         const msgText = text || input;
         if (!msgText.trim()) return;
 
@@ -35,22 +35,52 @@ const FoodBuddyChatInterface = ({ onBack, profile }) => {
         setInput('');
         setIsTyping(true);
 
-        // Simulate buddy reply
-        setTimeout(() => {
-            setIsTyping(false);
+        try {
+            const response = await fetch('http://127.0.0.1:8000/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: msgText,
+                    // Use profile data if available, otherwise defaults
+                    age: profile?.age ? `${profile.age} years` : "5 years",
+                    weight: profile?.weight ? `${profile.weight}kg` : "20kg",
+                    conditions: profile?.allergies?.join(", ") || "None",
+                    prescription: "None",
+                    audience: "kid"
+                }),
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const data = await response.json();
+
             const replyMsg = {
                 id: Date.now() + 1,
                 sender: 'buddy',
-                text: "Woah! That sounds amazing! 🌟 You're doing great. Keep filling your tummy with healthy fuel!",
+                text: data.answer,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
             setMessages(prev => [...prev, replyMsg]);
-        }, 2000);
+
+        } catch (error) {
+            console.error("Food Buddy Error:", error);
+            const errorMsg = {
+                id: Date.now() + 1,
+                sender: 'buddy',
+                text: "Oh no! My brain is fuzzy. 😵‍💫 Can you ask a grown-up to check my connection?",
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsTyping(false);
+        }
     };
 
     const quickReplies = [
         "Yes, tell me! 🤩",
-        "What else is healthy? 🤔",
+        "Tell me a story! 📖",
         "Tell me a joke! 😂"
     ];
 
@@ -108,10 +138,37 @@ const FoodBuddyChatInterface = ({ onBack, profile }) => {
                             {/* Bubble */}
                             <div>
                                 <div className={`px-6 py-4 rounded-3xl shadow-sm text-sm md:text-base leading-relaxed ${msg.sender === 'me'
-                                        ? 'bg-blue-500 text-white rounded-br-none'
-                                        : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
+                                    ? 'bg-blue-500 text-white rounded-br-none'
+                                    : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
                                     }`}>
-                                    {msg.text}
+                                    {msg.sender === 'buddy' ? (
+                                        <div className="space-y-2">
+                                            {msg.text.split('\n').map((line, i) => {
+                                                const trimmed = line.trim();
+                                                if (!trimmed) return <div key={i} className="h-1" />;
+
+                                                // Simple list handling
+                                                if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+                                                    return (
+                                                        <div key={i} className="flex gap-2 ml-1">
+                                                            <span className="text-green-500 font-bold">•</span>
+                                                            <span className="flex-1">{trimmed.substring(2).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</span>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                // Paragraphs with bold support
+                                                return (
+                                                    <p key={i} dangerouslySetInnerHTML={{
+                                                        __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                                    }} />
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        msg.text
+                                    )}
                                 </div>
                                 <div className={`text-[10px] font-bold text-slate-300 mt-1 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}>
                                     {msg.time}

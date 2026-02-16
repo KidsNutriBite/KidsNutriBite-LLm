@@ -2,17 +2,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const NutriGuideChat = ({ onBack }) => {
+const NutriGuideChat = ({ onBack, profiles = [] }) => {
     const [messages, setMessages] = useState([
         {
             id: 1,
             sender: 'ai',
-            text: "Hello! I'm your NutriGuide Assistant. How can I help you with your family's nutrition today? I can suggest meal plans, explain nutrient benefits, or help with picky eaters.",
+            text: "Hello! I'm your NutriGuide Assistant. How can I help you with your family's nutrition today? Type '@' to select a specific child profile for personalized advice!",
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
     ]);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [showMentions, setShowMentions] = useState(false);
+    const [selectedChild, setSelectedChild] = useState(null);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -21,7 +23,25 @@ const NutriGuideChat = ({ onBack }) => {
 
     useEffect(scrollToBottom, [messages, isTyping]);
 
-    const handleSend = (text) => {
+    // Handle Input Change for Mentions
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        setInput(val);
+        if (val.trim().endsWith('@')) {
+            setShowMentions(true);
+        } else {
+            setShowMentions(false);
+        }
+    };
+
+    const selectChild = (child) => {
+        const newInput = input.replace(/@$/, `@${child.name} `);
+        setInput(newInput);
+        setSelectedChild(child);
+        setShowMentions(false);
+    };
+
+    const handleSend = async (text) => {
         const msgText = text || input;
         if (!msgText.trim()) return;
 
@@ -36,17 +56,56 @@ const NutriGuideChat = ({ onBack }) => {
         setInput('');
         setIsTyping(true);
 
-        // Simulate AI reply
-        setTimeout(() => {
-            setIsTyping(false);
+        try {
+            // Use selected child data or defaults
+            const profileData = selectedChild ? {
+                age: `${selectedChild.age} years`,
+                weight: selectedChild.weight ? `${selectedChild.weight}` : "Unknown",
+                conditions: selectedChild.allergies?.join(", ") || "None",
+                prescription: "None"
+            } : {
+                // Default fallback
+                age: "5 years",
+                weight: "18kg",
+                conditions: "None",
+                prescription: "None"
+            };
+
+            const response = await fetch('http://127.0.0.1:8000/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: msgText,
+                    ...profileData
+                }),
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const data = await response.json();
+
             const replyMsg = {
                 id: Date.now() + 1,
                 sender: 'ai',
-                text: "That's a great question. Based on general guidelines, ensuring a balanced intake of proteins and healthy fats is key for development. Would you like some specific recipe ideas?",
+                text: data.answer,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
             setMessages(prev => [...prev, replyMsg]);
-        }, 2000);
+
+        } catch (error) {
+            console.error("AI Error:", error);
+            const errorMsg = {
+                id: Date.now() + 1,
+                sender: 'ai',
+                text: "I'm having trouble connecting to the nutrition database right now. Please ensure the AI backend is running.",
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsTyping(false);
+        }
     };
 
     const suggestedTopics = [
@@ -54,6 +113,87 @@ const NutriGuideChat = ({ onBack }) => {
         "How much protein does a 5yo need?",
         "Healthy snack alternatives"
     ];
+
+    // Enhanced Markdown Renderer
+    const renderContent = (text) => {
+        const parts = text.split('|||DETAILED|||');
+        const shortAnswer = parts[0];
+        const detailedAnswer = parts[1];
+
+        const formatText = (str) => {
+            if (!str) return null;
+            return str.split('\n').map((line, i) => {
+                const trimmed = line.trim();
+                if (!trimmed) return <div key={i} className="h-2" />; // Spacer for empty lines
+
+                // Headers
+                if (trimmed.startsWith('### ')) return <h3 key={i} className="text-base font-bold text-indigo-700 dark:text-indigo-400 mt-3 mb-1">{trimmed.replace('### ', '')}</h3>;
+                if (trimmed.startsWith('## ')) return <h2 key={i} className="text-lg font-bold text-slate-800 dark:text-white mt-4 mb-2">{trimmed.replace('## ', '')}</h2>;
+
+                // Horizontal Rule
+                if (trimmed === '---' || trimmed === '***') return <hr key={i} className="my-3 border-slate-200 dark:border-slate-700" />;
+
+                // List items (Unordered)
+                if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                    return (
+                        <div key={i} className="flex gap-2 ml-2 mb-1">
+                            <span className="text-indigo-500">•</span>
+                            <span className="text-slate-700 dark:text-slate-300 flex-1">{parseInline(trimmed.substring(2))}</span>
+                        </div>
+                    );
+                }
+
+                // List items (Ordered) - Simple check for "1. ", "2. "
+                if (/^\d+\.\s/.test(trimmed)) {
+                    const content = trimmed.replace(/^\d+\.\s/, '');
+                    return (
+                        <div key={i} className="flex gap-2 ml-2 mb-1">
+                            <span className="font-bold text-indigo-500 text-xs mt-1">{trimmed.split('.')[0]}.</span>
+                            <span className="text-slate-700 dark:text-slate-300 flex-1">{parseInline(content)}</span>
+                        </div>
+                    );
+                }
+
+                // Standard Paragraph
+                return (
+                    <p key={i} className="mb-1 text-slate-700 dark:text-slate-200 leading-relaxed">
+                        {parseInline(line)}
+                    </p>
+                );
+            });
+        };
+
+        // Helper to parse bold and italic in a line
+        const parseInline = (text) => {
+            // Split by bold (**text**)
+            const parts = text.split(/(\*\*.*?\*\*)/g);
+            return parts.map((part, j) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={j} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
+                }
+                // Handle italics (*text*) within the non-bold parts
+                const italicParts = part.split(/(\*.*?\*)/g);
+                return italicParts.map((subPart, k) => {
+                    if (subPart.startsWith('*') && subPart.endsWith('*') && subPart.length > 2) {
+                        return <em key={`${j}-${k}`} className="italic text-slate-600 dark:text-slate-400">{subPart.slice(1, -1)}</em>;
+                    }
+                    return subPart;
+                });
+            });
+        };
+
+        return (
+            <div className="space-y-1">
+                <div className="text-slate-800 dark:text-slate-200">
+                    {formatText(shortAnswer)}
+                </div>
+
+                {detailedAnswer && (
+                    <DetailsSection content={detailedAnswer} formatText={formatText} />
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 border-none rounded-none shadow-none">
@@ -69,10 +209,9 @@ const NutriGuideChat = ({ onBack }) => {
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight">NutriGuide AI</h2>
-                            <span className="text-xs font-medium text-green-500 flex items-center gap-1">
-                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                Online & Ready
-                            </span>
+                            <p className="text-xs text-slate-500 font-medium">
+                                {selectedChild ? `Advising for: ${selectedChild.name}` : "General Advice Mode"}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -88,7 +227,7 @@ const NutriGuideChat = ({ onBack }) => {
                             animate={{ opacity: 1, y: 0 }}
                             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                            <div className={`flex items-end gap-3 max-w-[85%] md:max-w-[70%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                            <div className={`flex items-end gap-3 max-w-[90%] md:max-w-[75%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                                 {/* Avatar */}
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0 shadow-sm border ${msg.sender === 'user' ? 'bg-indigo-100 text-indigo-600 border-indigo-200' : 'bg-white dark:bg-slate-800 text-purple-600 border-slate-200 dark:border-slate-700'}`}>
                                     <span className="material-symbols-outlined text-sm">{msg.sender === 'user' ? 'person' : 'smart_toy'}</span>
@@ -100,7 +239,7 @@ const NutriGuideChat = ({ onBack }) => {
                                         ? 'bg-indigo-600 text-white rounded-br-none'
                                         : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-bl-none'
                                         }`}>
-                                        {msg.text}
+                                        {msg.sender === 'ai' ? renderContent(msg.text) : msg.text}
                                     </div>
                                     <div className={`text-[10px] font-medium text-slate-400 mt-1 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
                                         {msg.time}
@@ -144,14 +283,48 @@ const NutriGuideChat = ({ onBack }) => {
             )}
 
             {/* Input Area */}
-            <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 max-w-5xl mx-auto w-full">
+            <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 max-w-5xl mx-auto w-full relative">
+
+                {/* Mentions Popup */}
+                <AnimatePresence>
+                    {showMentions && profiles.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="absolute bottom-full left-4 mb-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-20"
+                        >
+                            <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-100 dark:border-slate-700">
+                                <span className="text-xs font-bold text-slate-500 uppercase">Select Child Profile</span>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto">
+                                {profiles.map(profile => (
+                                    <button
+                                        key={profile._id}
+                                        onClick={() => selectChild(profile)}
+                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-lg">
+                                            {profile.avatar === 'lion' ? '🦁' : '👶'}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-800 dark:text-white">{profile.name}</p>
+                                            <p className="text-[10px] text-slate-500">{profile.age} years • {profile.conditions?.length ? 'Has conditions' : 'Healthy'}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative flex gap-3">
                     <div className="flex-1 relative">
                         <input
                             type="text"
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder="Ask about nutrition..."
+                            onChange={handleInputChange}
+                            placeholder="Ask about nutrition (Type '@' to select child)..."
                             className="w-full h-12 pl-4 pr-12 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
                         />
                         <button
@@ -167,6 +340,38 @@ const NutriGuideChat = ({ onBack }) => {
                     NutriGuide AI can make mistakes. Consider checking important information.
                 </p>
             </div>
+        </div>
+    );
+};
+
+const DetailsSection = ({ content, formatText }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="mt-4 border-t border-slate-100 dark:border-slate-700 pt-2">
+            {!isOpen ? (
+                <button
+                    onClick={() => setIsOpen(true)}
+                    className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:underline"
+                >
+                    <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                    View Detailed Explanation
+                </button>
+            ) : (
+                <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mt-2 text-sm text-slate-600 dark:text-slate-300 space-y-2 border border-slate-100 dark:border-slate-700"
+                >
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Detailed Analysis</span>
+                        <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">
+                            <span className="material-symbols-outlined text-sm">close</span>
+                        </button>
+                    </div>
+                    {formatText(content)}
+                </motion.div>
+            )}
         </div>
     );
 };
