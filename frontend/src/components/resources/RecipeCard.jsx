@@ -1,8 +1,8 @@
 import React from 'react';
 
-const RecipeCard = ({ title, prepTime, nutrition, image, isSaved, onToggleSave }) => {
+const RecipeCard = ({ title, prepTime, nutrition, image, isSaved, onToggleSave, onClick }) => {
     return (
-        <div className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all border border-slate-100 dark:border-slate-800 flex flex-col h-full">
+        <div onClick={onClick} className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all border border-slate-100 dark:border-slate-800 flex flex-col h-full cursor-pointer">
             <div className="relative h-48 overflow-hidden">
                 {image ? (
                     <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -20,7 +20,7 @@ const RecipeCard = ({ title, prepTime, nutrition, image, isSaved, onToggleSave }
                 </div>
 
                 <button
-                    onClick={onToggleSave}
+                    onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
                     className={`absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-sm transition-colors ${isSaved ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
                 >
                     <span className={`material-symbols-outlined text-xl ${isSaved ? 'fill-current' : ''}`}>favorite</span>

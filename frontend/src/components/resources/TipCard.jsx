@@ -1,8 +1,8 @@
 import React from 'react';
 
-const TipCard = ({ title, preview, isSaved, onToggleSave }) => {
+const TipCard = ({ title, preview, isSaved, onToggleSave, onClick }) => {
     return (
-        <div className="group bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-primary/30 hover:shadow-lg transition-all flex items-start gap-4">
+        <div onClick={onClick} className="group bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-primary/30 hover:shadow-lg transition-all flex items-start gap-4 cursor-pointer">
             <div className="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 p-3 rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-2xl">lightbulb</span>
             </div>
@@ -11,7 +11,7 @@ const TipCard = ({ title, preview, isSaved, onToggleSave }) => {
                 <div className="flex justify-between items-start mb-2">
                     <h4 className="text-slate-900 dark:text-white font-bold text-lg">{title}</h4>
                     <button
-                        onClick={onToggleSave}
+                        onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
                         className={`text-slate-300 hover:text-red-500 transition-colors ${isSaved ? 'text-red-500' : ''}`}
                     >
                         <span className={`material-symbols-outlined text-xl ${isSaved ? 'fill-current' : ''}`}>favorite</span>

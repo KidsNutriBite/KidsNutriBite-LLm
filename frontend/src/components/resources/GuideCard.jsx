@@ -1,14 +1,14 @@
 import React from 'react';
 
-const GuideCard = ({ title, description, tags, isSaved, onToggleSave }) => {
+const GuideCard = ({ title, description, tags, isSaved, onToggleSave, onClick }) => {
     return (
-        <div className="group bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all border border-slate-100 dark:border-slate-800 relative flex flex-col h-full">
+        <div onClick={onClick} className="group bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all border border-slate-100 dark:border-slate-800 relative flex flex-col h-full cursor-pointer">
             <div className="flex justify-between items-start mb-4">
                 <div className="bg-primary/10 text-primary p-3 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
                     <span className="material-symbols-outlined text-2xl">menu_book</span>
                 </div>
                 <button
-                    onClick={onToggleSave}
+                    onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
                     className={`p-2 rounded-full transition-colors ${isSaved ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-slate-400 hover:text-red-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                 >
                     <span className={`material-symbols-outlined ${isSaved ? 'fill-current' : ''}`}>favorite</span>

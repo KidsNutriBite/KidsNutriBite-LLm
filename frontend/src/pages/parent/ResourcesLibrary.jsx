@@ -2,22 +2,40 @@ import React, { useState } from 'react';
 import GuideCard from '../../components/resources/GuideCard';
 import RecipeCard from '../../components/resources/RecipeCard';
 import TipCard from '../../components/resources/TipCard';
+import ResourceModal from '../../components/resources/ResourceModal';
+import { toast } from 'react-hot-toast';
 
 const ResourcesLibrary = () => {
     const [activeFilter, setActiveFilter] = useState('All');
     const [savedResources, setSavedResources] = useState(new Set());
+    const [selectedResource, setSelectedResource] = useState(null); // For modal
+
+    const handleOpenResource = (resource) => setSelectedResource(resource);
+    const handleCloseResource = () => setSelectedResource(null);
 
     const toggleSave = (id) => {
         setSavedResources(prev => {
             const newSet = new Set(prev);
             if (newSet.has(id)) {
                 newSet.delete(id);
+                toast.success('Removed from Saved Resources');
             } else {
                 newSet.add(id);
+                toast.success('Added to Saved Resources');
             }
             return newSet;
         });
     };
+
+    // Filter Logic State
+    const [showSavedOnly, setShowSavedOnly] = useState(false);
+
+    const handleFilterChange = (filter) => {
+        setActiveFilter(filter);
+        setShowSavedOnly(filter === 'Saved Resources');
+    };
+
+
 
     // Hardcoded Data
     const guides = [
@@ -40,6 +58,23 @@ const ResourcesLibrary = () => {
         { id: 't3', title: 'Decoding Indian Labels', preview: 'Identifying hidden additives in popular store-bought Indian snacks and drinks.' },
         { id: 't4', title: 'Healthy Snacking During Festivals', preview: 'Smart swaps for Diwali and Holi sweets to keep sugar intake in check.' },
     ];
+
+
+
+    // Filter Function
+    const filterResource = (resource) => {
+        if (showSavedOnly) return savedResources.has(resource.id);
+        if (activeFilter === 'All') return true;
+        // Mock filtering logic based on tags or properties
+        if (activeFilter === 'Under 20 mins') return resource.prepTime && parseInt(resource.prepTime) <= 20;
+        if (resource.tags && resource.tags.includes(activeFilter)) return true;
+        // Fallback random filter for demo purposes if tags don't perfectly align
+        return true;
+    };
+
+    const filteredGuides = guides.filter(filterResource);
+    const filteredRecipes = recipes.filter(filterResource);
+    const filteredTips = tips.filter(filterResource);
 
     return (
         <div className="space-y-12 pb-12">
@@ -81,14 +116,25 @@ const ResourcesLibrary = () => {
 
             {/* Sticky Filter Bar */}
             <div className="sticky top-0 z-20 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md py-4 -mx-4 px-4 border-b border-slate-100 dark:border-slate-800 mb-8 overflow-x-auto">
-                <div className="flex gap-2">
-                    {['All Indian Resources', 'Under 20 mins', 'Desi Toddler-friendly', 'Doctor Recommended', 'Lactose Free', 'School Approved'].map((filter) => (
+                <div className="flex gap-2 items-center">
+                    <button
+                        onClick={() => handleFilterChange('Saved Resources')}
+                        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeFilter === 'Saved Resources'
+                            ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            }`}
+                    >
+                        <span className={`material-symbols-outlined text-lg ${activeFilter === 'Saved Resources' ? 'fill-current' : ''}`}>favorite</span>
+                        Saved Resources
+                    </button>
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                    {['All', 'Under 20 mins', 'Desi Toddler-friendly', 'Doctor Recommended', 'Lactose Free'].map((filter) => (
                         <button
                             key={filter}
-                            onClick={() => setActiveFilter(filter)}
+                            onClick={() => handleFilterChange(filter)}
                             className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-bold transition-all ${activeFilter === filter
-                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                                 }`}
                         >
                             {filter}
@@ -107,14 +153,17 @@ const ResourcesLibrary = () => {
                     </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {guides.map(guide => (
+                    {filteredGuides.length > 0 ? filteredGuides.map(guide => (
                         <GuideCard
                             key={guide.id}
                             {...guide}
                             isSaved={savedResources.has(guide.id)}
                             onToggleSave={() => toggleSave(guide.id)}
+                            onClick={() => handleOpenResource(guide)}
                         />
-                    ))}
+                    )) : (
+                        activeFilter === 'Saved Resources' && <p className="col-span-full text-slate-500 italic">No saved guides yet.</p>
+                    )}
                 </div>
             </section>
 
@@ -124,14 +173,17 @@ const ResourcesLibrary = () => {
                     <h2 className="text-2xl font-black text-slate-900 dark:text-white">Healthy Indian Recipes For You</h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {recipes.map(recipe => (
+                    {filteredRecipes.length > 0 ? filteredRecipes.map(recipe => (
                         <RecipeCard
                             key={recipe.id}
                             {...recipe}
                             isSaved={savedResources.has(recipe.id)}
                             onToggleSave={() => toggleSave(recipe.id)}
+                            onClick={() => handleOpenResource(recipe)}
                         />
-                    ))}
+                    )) : (
+                        activeFilter === 'Saved Resources' && <p className="col-span-full text-slate-500 italic">No saved recipes yet.</p>
+                    )}
                 </div>
             </section>
 
@@ -139,16 +191,28 @@ const ResourcesLibrary = () => {
             <section>
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6">Indian Parenting Tips & Tricks</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                    {tips.map(tip => (
+                    {filteredTips.length > 0 ? filteredTips.map(tip => (
                         <TipCard
                             key={tip.id}
                             {...tip}
                             isSaved={savedResources.has(tip.id)}
                             onToggleSave={() => toggleSave(tip.id)}
+                            onClick={() => handleOpenResource(tip)}
                         />
-                    ))}
+                    )) : (
+                        activeFilter === 'Saved Resources' && <p className="col-span-full text-slate-500 italic">No saved tips yet.</p>
+                    )}
                 </div>
             </section>
+
+            {/* Resource Detail Modal */}
+            <ResourceModal
+                isOpen={!!selectedResource}
+                onClose={handleCloseResource}
+                resource={selectedResource}
+                isSaved={selectedResource ? savedResources.has(selectedResource.id) : false}
+                onToggleSave={() => selectedResource && toggleSave(selectedResource.id)}
+            />
         </div>
     );
 };
