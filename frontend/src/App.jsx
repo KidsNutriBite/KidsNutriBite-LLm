@@ -21,6 +21,7 @@ import BookAppointment from './pages/parent/BookAppointment';
 import MyAppointments from './pages/parent/MyAppointments';
 import ParentProfile from './pages/parent/ParentProfile';
 import DoctorAccess from './pages/parent/DoctorAccess';
+import ResourcesLibrary from './pages/parent/ResourcesLibrary';
 
 function App() {
     return (
@@ -40,7 +41,7 @@ function App() {
                         <Route path="/parent" element={<ParentLayout />}>
                             <Route path="dashboard" element={<ParentDashboard />} />
                             <Route path="child/:id" element={<ChildDetails />} />
-                            <Route path="resources" element={<ComingSoon title="Resources Library" description="Access nutrition guides, recipes, and parenting tips coming soon!" />} />
+                            <Route path="resources" element={<ResourcesLibrary />} />
                             <Route path="access" element={<DoctorAccess />} />
                             <Route path="directory" element={<PediatricianDirectory />} />
                             <Route path="book-appointment/:hospitalId" element={<BookAppointment />} />
