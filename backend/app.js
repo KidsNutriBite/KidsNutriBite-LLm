@@ -19,7 +19,8 @@ import gameRoutes from './routes/game.routes.js';
 import hospitalRoutes from './routes/hospital.routes.js';
 import appointmentRoutes from './routes/appointment.routes.js';
 import parentRoutes from './routes/parent.routes.js';
-import notificationRoutes from './routes/notification.routes.js'; // New import
+import notificationRoutes from './routes/notification.routes.js';
+import growthRoutes from './routes/growth.routes.js'; // New import
 // error middleware import placeholder
 
 // Initialize App
@@ -43,7 +44,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/parent', parentRoutes);
-app.use('/api/notifications', notificationRoutes); // New route
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/doctor', doctorRoutes);
@@ -51,7 +52,8 @@ app.use('/api/access', accessRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/game', gameRoutes);
 app.use('/api/hospitals', hospitalRoutes);
-app.use('/api/appointments', appointmentRoutes); // New route
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/growth', growthRoutes); // New route
 
 // Health Check
 app.get('/', (req, res) => {
