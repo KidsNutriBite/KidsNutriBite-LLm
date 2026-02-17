@@ -1,7 +1,7 @@
 # NutriKid – Doctor-Guided Pediatric Nutrition Platform 🦁🥦
 
 ## Mission
-Build a production-quality, full-stack MERN application for pediatric nutrition tracking with doctor oversight, parent controls, and a gamified Kids Mode.
+Build a production-quality, full-stack MERN application for pediatric nutrition tracking with doctor oversight, parent controls, and a gamified Kids Mode..
 
 ## Tech Stack
 - **Frontend**: React (Vite), Tailwind CSS, Framer Motion, Recharts
