@@ -13,6 +13,10 @@ import ParentDashboard from './pages/parent/ParentDashboard';
 import ChildDetails from './pages/parent/ChildDetails';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientDetails from './pages/doctor/PatientDetails';
+import DoctorProfile from './pages/doctor/DoctorProfile';
+import DoctorConsultations from './pages/doctor/DoctorConsultations';
+import DoctorResources from './pages/doctor/DoctorResources';
+import DoctorAnalytics from './pages/doctor/DoctorAnalytics';
 import KidsLayout from './layouts/KidsLayout';
 import KidsDashboard from './pages/kids/KidsDashboard';
 import ComingSoon from './pages/common/ComingSoon';
@@ -55,6 +59,10 @@ function App() {
                         <Route path="/doctor" element={<DoctorLayout />}>
                             <Route path="dashboard" element={<DoctorDashboard />} />
                             <Route path="patients/:id" element={<PatientDetails />} />
+                            <Route path="profile" element={<DoctorProfile />} />
+                            <Route path="appointments" element={<DoctorConsultations />} />
+                            <Route path="resources" element={<DoctorResources />} />
+                            <Route path="analytics" element={<DoctorAnalytics />} />
                         </Route>
                     </Route>
 

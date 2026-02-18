@@ -18,11 +18,11 @@ export const checkDoctorAccess = asyncHandler(async (req, res, next) => {
         throw new Error('Profile not found');
     }
 
-    // 2. Check for Active Access record
+    // 2. Check for Access record (Active, Restricted, or Pending)
     const access = await DoctorAccess.findOne({
         doctorId: req.user._id,
         profileId: profileId,
-        status: 'active',
+        status: { $in: ['active', 'restricted', 'pending'] },
     });
 
     if (!access) {

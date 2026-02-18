@@ -17,8 +17,8 @@ export const rejectRequest = async (requestId) => {
 };
 
 // New Access Management
-export const inviteDoctor = async (email, profileId) => {
-    const response = await api.post('/access/invite', { email, profileId });
+export const inviteDoctor = async (email, profileId, message) => {
+    const response = await api.post('/access/invite', { email, profileId, message });
     return response.data;
 };
 
@@ -27,7 +27,13 @@ export const getAccessList = async () => {
     return response.data;
 };
 
+
 export const revokeAccess = async (requestId) => {
     const response = await api.put(`/access/revoke/${requestId}`);
+    return response.data;
+};
+
+export const getDoctors = async () => {
+    const response = await api.get('/doctor/all');
     return response.data;
 };

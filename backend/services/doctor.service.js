@@ -53,8 +53,15 @@ export const requestAccess = async (doctorId, parentEmail) => {
  * Get all patients (profiles) that the doctor has access to
  */
 export const getMyPatients = async (doctorId) => {
-    const accesses = await DoctorAccess.find({ doctorId, status: 'active' }).populate('profileId');
-    return accesses.map(a => a.profileId).filter(p => p !== null);
+    const accesses = await DoctorAccess.find({
+        doctorId,
+        status: { $in: ['active', 'restricted'] }
+    }).populate('profileId');
+    return accesses.map(a => ({
+        ...a.profileId.toObject(),
+        accessStatus: a.status,
+        accessId: a._id
+    })).filter(p => p !== null && p._id);
 };
 
 /**
@@ -66,10 +73,17 @@ export const validateAccess = async (doctorId, profileId, action = 'VIEW_ATTEMPT
     const access = await DoctorAccess.findOne({
         doctorId,
         profileId,
-        status: 'active'
+        status: { $in: ['active', 'restricted', 'pending'] }
     });
 
-    const status = access ? 'ALLOWED' : 'DENIED';
+    let status = 'DENIED';
+    if (access) {
+        if (access.status === 'active') {
+            status = 'ALLOWED';
+        } else {
+            status = 'RESTRICTED';
+        }
+    }
 
     // 2. Create Audit Log (Async, don't block)
     AuditLog.create({
@@ -84,6 +98,11 @@ export const validateAccess = async (doctorId, profileId, action = 'VIEW_ATTEMPT
         throw new Error('Access Denied: You do not have permission to view this patient.');
     }
 
+    // If action requires full access (e.g., UPDATE_NOTES), check if status is active
+    if (action === 'UPDATE_NOTES' && access.status !== 'active') {
+        throw new Error('Access Denied: Full access is required to update health notes.');
+    }
+
     return true;
 };
 
@@ -91,21 +110,44 @@ export const validateAccess = async (doctorId, profileId, action = 'VIEW_ATTEMPT
  * Get full patient details (Profile + Meals + Generated Summary)
  */
 export const getPatientDetails = async (doctorId, profileId) => {
-    // 1. Validate Access
-    await validateAccess(doctorId, profileId, 'VIEW_ATTEMPT');
+    // 1. Fetch Access Info first to check status
+    const access = await DoctorAccess.findOne({
+        doctorId,
+        profileId,
+        status: { $in: ['active', 'restricted', 'pending'] }
+    });
 
-    // 2. Fetch Data Parallelly
-    const [profile, meals] = await Promise.all([
-        Profile.findById(profileId),
-        MealLog.find({ profileId }).sort({ date: -1 }).limit(50)
-    ]);
+    if (!access) throw new Error('Access Denied');
 
+    // 2. Fetch Data
+    const profile = await Profile.findById(profileId);
     if (!profile) throw new Error('Profile not found');
+
+    if (access.status === 'restricted' || access.status === 'pending') {
+        // Return only basic info for restricted/pending status
+        return {
+            profile: {
+                _id: profile._id,
+                name: profile.name,
+                age: profile.age,
+                height: profile.height,
+                weight: profile.weight,
+                avatar: profile.avatar,
+                profileImage: profile.profileImage
+            },
+            message: access.message,
+            status: 'restricted', // Always tell frontend it is restricted if not active
+            accessId: access._id
+        };
+    }
+
+    const meals = await MealLog.find({ profileId }).sort({ date: -1 }).limit(50);
 
     return {
         profile,
         meals,
-        // We could add more analysis here later
+        status: 'active',
+        accessId: access._id
     };
 };
 

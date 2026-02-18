@@ -15,6 +15,11 @@ export const getPatientDetails = async (id) => {
     return response.data;
 };
 
+export const requestFullAccess = async (id, message) => {
+    const response = await api.post(`/doctor/patients/${id}/request-full-access`, { message });
+    return response.data;
+};
+
 export const getNearbyDoctors = async (lat, lng, radius = 10) => {
     const response = await api.get(`/doctor/nearby?lat=${lat}&lng=${lng}&radius=${radius}`);
     return response.data;
