@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getProfileById as getProfile } from '../../api/profile.api';
 import { getProfileMeals as getMeals, logMeal, deleteMeal } from '../../api/meal.api';
 import { getMealFrequency, getPrescriptions } from '../../api/analytics.api';
+import { getGrowthHistory, deleteGrowthRecord } from '../../api/growth.api'; // Import API
 import MealLogForm from '../../components/parent/MealLogForm';
 import Modal from '../../components/common/Modal';
 import MealFrequencyChart from '../../components/charts/MealFrequencyChart';
 import TipCard from '../../components/common/TipCard';
+import GrowthTimeline from '../../components/growth/GrowthTimeline'; // Import Component
+import UpdateGrowthModal from '../../components/growth/UpdateGrowthModal'; // Import Component
 
 const ChildDetails = () => {
     const { id } = useParams();
@@ -16,6 +19,7 @@ const ChildDetails = () => {
     // State
     const [profile, setProfile] = useState(null);
     const [meals, setMeals] = useState([]);
+    const [growthRecords, setGrowthRecords] = useState([]); // Growth State
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
 
@@ -24,26 +28,37 @@ const ChildDetails = () => {
     const [prescriptions, setPrescriptions] = useState([]);
 
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+    const [isGrowthModalOpen, setIsGrowthModalOpen] = useState(false); // Growth Modal State
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [profileRes, mealsRes, chartRes, prescRes] = await Promise.all([
+            const [profileRes, mealsRes, chartRes, prescRes, growthRes] = await Promise.all([
                 getProfile(id),
                 getMeals(id),
                 getMealFrequency(id),
-                getPrescriptions(id)
+                getPrescriptions(id),
+                getGrowthHistory(id) // Fetch Growth
             ]);
             setProfile(profileRes.data || profileRes);
             setMeals(mealsRes.data || mealsRes || []);
             setChartData(chartRes.data || chartRes || []);
             setPrescriptions(prescRes.data || prescRes || []);
+            setGrowthRecords(growthRes.data || growthRes || []);
         } catch (error) {
             console.error(error);
             navigate('/parent/dashboard');
         } finally {
             setLoading(false);
         }
+    };
+
+    const refreshGrowth = async () => {
+        const res = await getGrowthHistory(id);
+        setGrowthRecords(res.data || res || []);
+        // Re-fetch profile to update header height/weight
+        const profRes = await getProfile(id);
+        setProfile(profRes.data || profRes);
     };
 
     useEffect(() => {
@@ -62,6 +77,18 @@ const ChildDetails = () => {
                 fetchData();
             } catch (error) {
                 console.error('Failed to delete meal:', error);
+            }
+        }
+    };
+
+    const handleGrowthDelete = async (recordId) => {
+        if (window.confirm('Are you sure you want to delete this growth record?')) {
+            try {
+                await deleteGrowthRecord(recordId);
+                refreshGrowth();
+            } catch (error) {
+                console.error('Failed to delete growth record:', error);
+                alert("Failed to delete. You can only delete records you created.");
             }
         }
     };
@@ -126,6 +153,7 @@ const ChildDetails = () => {
 
     const tabs = [
         { id: 'overview', label: 'Overview & Logs', icon: '📊' },
+        { id: 'growth', label: 'Growth Timeline', icon: '📏' }, // New Tab
         { id: 'analytics', label: 'Nutrition Trends', icon: '📈' },
         { id: 'prescriptions', label: 'Doctor Actions', icon: '🩺' },
     ];
@@ -253,7 +281,10 @@ const ChildDetails = () => {
                                             <p className="text-xs text-gray-400 font-bold uppercase">Water</p>
                                             <p className="text-2xl font-black text-gray-800">{stats.water}L</p>
                                         </div>
-
+                                        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-xl shadow-lg shadow-indigo-200 text-white flex flex-col justify-center items-center cursor-pointer hover:scale-105 transition" onClick={() => setActiveTab('growth')}>
+                                            <p className="text-xs font-bold uppercase opacity-80 mb-1">Current BMI</p>
+                                            <p className="text-4xl font-black">{growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].bmi : 'N/A'}</p>
+                                        </div>
                                     </div>
 
                                     {/* Recent Logs Section */}
@@ -320,6 +351,21 @@ const ChildDetails = () => {
                                 </div>
                             )}
 
+                            {activeTab === 'growth' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <h2 className="text-2xl font-bold text-gray-900">Growth Timeline</h2>
+                                        <button
+                                            onClick={() => setIsGrowthModalOpen(true)}
+                                            className="px-6 py-2 bg-primary text-white font-bold rounded-xl shadow hover:bg-blue-600 transition flex items-center gap-2"
+                                        >
+                                            <span>📏</span> Update Growth
+                                        </button>
+                                    </div>
+                                    <GrowthTimeline data={growthRecords} onDelete={handleGrowthDelete} />
+                                </div>
+                            )}
+
                             {activeTab === 'analytics' && (
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-bold text-gray-900">Nutrition Trends</h2>
@@ -376,6 +422,14 @@ const ChildDetails = () => {
                     onCancel={() => setIsLogModalOpen(false)}
                 />
             </Modal>
+
+            {/* Update Growth Modal */}
+            <UpdateGrowthModal
+                isOpen={isGrowthModalOpen}
+                onClose={() => setIsGrowthModalOpen(false)}
+                childId={id}
+                onChanged={refreshGrowth}
+            />
         </div>
     );
 };
