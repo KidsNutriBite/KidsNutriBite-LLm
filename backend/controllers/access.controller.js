@@ -9,9 +9,9 @@ import User from '../models/User.model.js';
 export const getPendingRequests = asyncHandler(async (req, res) => {
     const requests = await DoctorAccess.find({
         parentId: req.user._id,
-        status: 'pending',
-        profileId: null // General requests waiting for profile assignment
-    }).populate('doctorId', 'name email');
+        status: 'pending'
+    }).populate('doctorId', 'name email')
+        .populate('profileId', 'name');
 
     res.status(200).json(new ApiResponse(200, requests));
 });
@@ -23,15 +23,10 @@ export const approveRequest = asyncHandler(async (req, res) => {
     const { profileId } = req.body;
     const requestId = req.params.requestId;
 
-    if (!profileId) {
-        res.status(400);
-        throw new Error('Please select a child profile to share');
-    }
-
     const request = await DoctorAccess.findOne({
         _id: requestId,
         parentId: req.user._id,
-        status: 'pending'
+        status: { $in: ['pending', 'restricted'] }
     });
 
     if (!request) {
@@ -39,13 +34,27 @@ export const approveRequest = asyncHandler(async (req, res) => {
         throw new Error('Request not found or already processed');
     }
 
-    // Update request to ACTIVE and link Profile
-    // We modify the EXISTING request record to link it
-    request.status = 'active';
-    request.profileId = profileId;
+    if (request.status === 'pending') {
+        if (!profileId) {
+            res.status(400);
+            throw new Error('Please select a child profile to share');
+        }
+        // Initial approval: Pending -> Restricted
+        request.status = 'restricted';
+        request.profileId = profileId;
+    } else if (request.status === 'restricted' && request.fullAccessRequested) {
+        // Upgrading: Restricted -> Active (Full Access)
+        request.status = 'active';
+    } else {
+        res.status(400);
+        throw new Error('Invalid request or full access already granted');
+    }
+
+    // Clear request flag but keep message for history
+    request.fullAccessRequested = false;
     await request.save();
 
-    res.status(200).json(new ApiResponse(200, request, 'Access granted successfully'));
+    res.status(200).json(new ApiResponse(200, request, `Access ${request.status === 'active' ? 'upgraded to full' : 'granted'} successfully`));
 });
 
 // @desc    Reject access request
@@ -73,7 +82,7 @@ export const rejectRequest = asyncHandler(async (req, res) => {
 // @route   POST /api/access/invite
 // @access  Private (Parent)
 export const inviteDoctor = asyncHandler(async (req, res) => {
-    const { email, profileId } = req.body;
+    const { email, profileId, message } = req.body;
 
     if (!email || !profileId) {
         res.status(400);
@@ -98,27 +107,30 @@ export const inviteDoctor = asyncHandler(async (req, res) => {
     if (existingAccess) {
         if (existingAccess.status === 'active') {
             res.status(400);
-            throw new Error('Doctor already has access to this child');
+            throw new Error('Doctor already has full access to this child');
         }
-        if (existingAccess.status === 'pending') {
-            res.status(400);
-            throw new Error('An invitation is already pending');
-        }
-        // If rejected/revoked, we can reactivate or create new (reactivate logic below)
-        existingAccess.status = 'active'; // Direct grant
+
+        // Even if re-inviting or reactivating, start with RESTRICTED access
+        existingAccess.status = 'restricted';
+        existingAccess.message = message || existingAccess.message || '';
+        existingAccess.profileId = profileId; // Ensure it's linked to the correct profile
+        existingAccess.fullAccessRequested = false;
+        existingAccess.doctorMessage = '';
+
         await existingAccess.save();
-        return res.status(200).json(new ApiResponse(200, existingAccess, 'Access granted successfully'));
+        return res.status(200).json(new ApiResponse(200, existingAccess, 'Invitation sent. Access is limited to basic details until full access is granted.'));
     }
 
-    // 3. Create new Access Record (Directly Active for Parent-initiated)
+    // 3. Create new Access Record (Pending with Consultation Message)
     const newAccess = await DoctorAccess.create({
         doctorId: doctor._id,
         parentId: req.user._id,
         profileId: profileId,
-        status: 'active'
+        message: message || '',
+        status: 'restricted'
     });
 
-    res.status(201).json(new ApiResponse(201, newAccess, 'Invitation sent and access granted'));
+    res.status(201).json(new ApiResponse(201, newAccess, 'Consultation invitation sent. Waiting for doctor to view.'));
 });
 
 // @desc    Get list of doctors with active access
@@ -127,7 +139,8 @@ export const inviteDoctor = asyncHandler(async (req, res) => {
 export const getAccessList = asyncHandler(async (req, res) => {
     const accessList = await DoctorAccess.find({
         parentId: req.user._id,
-        status: 'active'
+        status: { $in: ['active', 'restricted'] },
+        profileId: { $ne: null }
     })
         .populate('doctorId', 'name email doctorProfile')
         .populate('profileId', 'name avatar');

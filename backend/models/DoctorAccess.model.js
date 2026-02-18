@@ -21,12 +21,24 @@ const doctorAccessSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['pending', 'active', 'rejected'],
+            enum: ['pending', 'restricted', 'active', 'rejected'],
             default: 'pending',
         },
         expiresAt: {
             type: Date,
             default: null, // Null means no expiration
+        },
+        message: {
+            type: String,
+            default: '',
+        },
+        doctorMessage: {
+            type: String,
+            default: '',
+        },
+        fullAccessRequested: {
+            type: Boolean,
+            default: false,
         },
     },
     { timestamps: true }

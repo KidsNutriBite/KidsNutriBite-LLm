@@ -3,6 +3,8 @@ import { getMealFrequency, createPrescription, getPrescriptions } from '../contr
 import { protect } from '../middlewares/auth.middleware.js';
 import { checkDoctorAccess } from '../middlewares/doctor.middleware.js';
 import { authorize } from '../middlewares/role.middleware.js';
+import DoctorAccess from '../models/DoctorAccess.model.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
 const router = express.Router();
 
@@ -39,7 +41,23 @@ const checkSharedAccess = async (req, res, next) => {
     }
 };
 
-router.get('/meal-frequency/:profileId', checkSharedAccess, getMealFrequency);
+// Middleware to ensure FULL access (active status)
+const checkFullAccess = asyncHandler(async (req, res, next) => {
+    const profileId = req.params.profileId || req.params.id || req.body.profileId;
+    const access = await DoctorAccess.findOne({
+        doctorId: req.user._id,
+        profileId: profileId,
+        status: 'active'
+    });
+
+    if (!access && req.user.role === 'doctor') {
+        res.status(403);
+        throw new Error('Full access is required for this action');
+    }
+    next();
+});
+
+router.get('/meal-frequency/:profileId', checkSharedAccess, checkFullAccess, getMealFrequency);
 router.get('/prescriptions/:profileId', checkSharedAccess, getPrescriptions);
 
 router.post('/prescriptions', authorize('doctor'), async (req, res, next) => {

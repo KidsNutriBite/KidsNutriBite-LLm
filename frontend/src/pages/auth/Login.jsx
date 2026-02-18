@@ -8,6 +8,7 @@ import SimpleNavbar from '../../components/common/SimpleNavbar';
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -107,15 +108,24 @@ const Login = () => {
                             <div className="relative">
                                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#4c799a] text-lg">lock</span>
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-slate-800 border compacted-input border-slate-200 dark:border-slate-700 rounded-lg text-sm text-[#0d161b] dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400 font-medium"
                                     placeholder="••••••••"
                                 />
-                                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors">
-                                    <span className="material-symbols-outlined text-lg">visibility</span>
+                                <button
+                                    type="button"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors"
+                                    onMouseDown={() => setShowPassword(true)}
+                                    onMouseUp={() => setShowPassword(false)}
+                                    onMouseLeave={() => setShowPassword(false)}
+                                    onBlur={() => setShowPassword(false)}
+                                >
+                                    <span className="material-symbols-outlined text-lg">
+                                        {showPassword ? 'visibility' : 'visibility_off'}
+                                    </span>
                                 </button>
                             </div>
                         </div>
