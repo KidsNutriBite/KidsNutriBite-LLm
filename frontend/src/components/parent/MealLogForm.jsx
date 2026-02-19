@@ -2,24 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios'; // Import axios directly for FormData if needed, or use api instance
 // Assuming logMeal is imported correctly
 import { logMeal } from '../../api/meal.api';
+import { FOOD_DATABASE, QUICK_ADDS } from '../../data/foodDatabase'; // Import comprehensive DB
 
-const MOCK_DB = [
-    { name: 'Oatmeal', qty: '1 bowl', cal: 150, p: 5, c: 27, f: 3, tag: 'High Fiber' },
-    { name: 'Blueberries', qty: '1/2 cup', cal: 40, p: 1, c: 10, f: 0, tag: 'Antioxidant' },
-    { name: 'Milk', qty: '1 glass', cal: 120, p: 8, c: 12, f: 5, tag: 'Calcium' },
-    { name: 'Egg', qty: '1 large', cal: 70, p: 6, c: 0, f: 5, tag: 'Protein' },
-    { name: 'Banana', qty: '1 medium', cal: 105, p: 1, c: 27, f: 0, tag: 'Energy' },
-    { name: 'Chicken Breast', qty: '100g', cal: 165, p: 31, c: 0, f: 4, tag: 'Lean Protein' },
-    { name: 'Rice', qty: '1 cup', cal: 200, p: 4, c: 45, f: 0, tag: 'Carbs' },
-    { name: 'Yogurt', qty: '1 cup', cal: 150, p: 10, c: 12, f: 4, tag: 'Probiotic' },
-    { name: 'Apple', qty: '1 medium', cal: 95, p: 0, c: 25, f: 0, tag: 'Vitamin C' },
-    { name: 'Avocado Toast', qty: '1 slice', cal: 250, p: 6, c: 20, f: 15, tag: 'Healthy Fats' },
-];
-
-const MealLogForm = ({ profileId, onSuccess, onCancel }) => {
+const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
     const [formData, setFormData] = useState({
-        mealType: 'breakfast',
-        date: new Date().toISOString().split('T')[0],
+        mealType: initialData?.mealType || 'breakfast',
+        date: initialData?.date || new Date().toISOString().split('T')[0],
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
         notes: ''
     });
@@ -37,7 +25,7 @@ const MealLogForm = ({ profileId, onSuccess, onCancel }) => {
             setSearchResults([]);
             return;
         }
-        const filtered = MOCK_DB.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        const filtered = FOOD_DATABASE.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
         setSearchResults(filtered);
     }, [searchQuery]);
 
@@ -182,11 +170,30 @@ const MealLogForm = ({ profileId, onSuccess, onCancel }) => {
 
                 {/* Search & Add Food */}
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Add Food Items</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Add Food Items</label>
+
+                    {/* Quick Add Chips */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        {QUICK_ADDS.map((item, idx) => (
+                            <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                    const food = FOOD_DATABASE.find(f => f.name === item.name);
+                                    if (food) addFood(food);
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold border border-indigo-100 transition-colors"
+                            >
+                                <span>{item.icon}</span>
+                                {item.label || item.name.split(' (')[0]} <span className="text-indigo-400">+</span>
+                            </button>
+                        ))}
+                    </div>
+
                     <div className="relative mb-4">
                         <input
                             type="text"
-                            placeholder="Search foods (e.g. Blueberries, Oat milk...)"
+                            placeholder="Search foods (e.g. Idli, Dal, Milk...)"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full border border-gray-200 rounded-lg px-4 py-3 pl-10 focus:ring-2 focus:ring-primary/20 outline-none shadow-sm"

@@ -2,14 +2,16 @@ import mongoose from 'mongoose';
 
 const foodItemSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    quantity: { type: String, required: true },
+    quantity: { type: String, default: '1 serving' },
     calories: { type: Number, default: 0 },
     protein: { type: Number, default: 0 },
     carbs: { type: Number, default: 0 },
-    fats: { type: Number, default: 0 }
-}, { _id: false });
+    fats: { type: Number, default: 0 },
+    notes: String,
+    photoUrl: String
+}, { _id: true }); // Keep _id for identifying specific items if needed
 
-const mealLogSchema = new mongoose.Schema(
+const dailyMealLogSchema = new mongoose.Schema(
     {
         profileId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -17,42 +19,30 @@ const mealLogSchema = new mongoose.Schema(
             required: true,
         },
         date: {
-            type: Date,
+            type: String, // Storing as YYYY-MM-DD string for easy querying
             required: true,
-            default: Date.now,
+            index: true
         },
-        time: {
-            type: String, // e.g. "08:30 AM"
+        breakfast: [foodItemSchema],
+        lunch: [foodItemSchema],
+        snacks: [foodItemSchema],
+        dinner: [foodItemSchema],
+
+        completedMealsCount: {
+            type: Number,
+            default: 0,
+            max: 4
         },
-        mealType: {
-            type: String,
-            enum: ['breakfast', 'lunch', 'dinner', 'snack', 'water'],
-            required: true,
-        },
-        foodItems: {
-            type: [foodItemSchema],
-            default: []
-        },
-        waterIntake: {
-            type: Number, // in ml
-            default: 0
-        },
-        notes: {
-            type: String,
-            trim: true,
-        },
-        photoUrl: {
-            type: String,
-        },
-        nutrients: {
-            type: Map,
-            of: Number, // e.g., { 'calories': 250, 'protein': 10 }
-            default: {}
-        }
+
+        // Metadata for streak tracking
+        isStreakCounted: { type: Boolean, default: false }
     },
     { timestamps: true }
 );
 
-const MealLog = mongoose.model('MealLog', mealLogSchema);
+// Compound index to ensure one log per profile per date
+dailyMealLogSchema.index({ profileId: 1, date: 1 }, { unique: true });
+
+const MealLog = mongoose.model('MealLog', dailyMealLogSchema);
 
 export default MealLog;

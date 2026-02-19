@@ -22,10 +22,30 @@ const NutritionGaps = ({ profile, meals }) => {
             // For now, let's just send the visible meals (the parent component passes them).
             // Usually parent passes recent meals. Let's filter for today in the function or assume list is relevant.
 
-            // We'll just send the last 5-10 meals to get a sense of recent intake.
-            const recentMeals = meals.slice(0, 10);
+            // Flatten daily logs into individual food items for AI analysis
+            const flatMeals = [];
+            // Take last 7 days of logs
+            meals.slice(0, 7).forEach(log => {
+                ['breakfast', 'lunch', 'snacks', 'dinner'].forEach(type => {
+                    if (log[type] && Array.isArray(log[type])) {
+                        log[type].forEach(item => {
+                            flatMeals.push({
+                                name: item.name,
+                                quantity: item.quantity || '1 serving',
+                                ...item // pass other props like calories if available
+                            });
+                        });
+                    }
+                });
+            });
 
-            const result = await analyzeNutrition(profile.age, profile.gender, recentMeals);
+            if (flatMeals.length === 0) {
+                setError("No food items found in recent logs.");
+                setLoading(false);
+                return;
+            }
+
+            const result = await analyzeNutrition(profile.age, profile.gender, flatMeals);
             setData(result);
         } catch (err) {
             setError("Failed to analyze nutrition. Please try again later.");
@@ -42,18 +62,20 @@ const NutritionGaps = ({ profile, meals }) => {
             <div className="relative z-10">
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-                            🧬 Smart Nutrition Detector
+                        <h2 className="text-xl md:text-2xl font-black text-indigo-900 flex items-center gap-3">
+                            <span className="material-symbols-outlined text-indigo-600 text-3xl">medical_services</span>
+                            Clinical Nutrition Analysis
                         </h2>
-                        <p className="text-gray-500 font-medium mt-1">AI-powered clinical analysis of {profile.name}'s intake.</p>
+                        <p className="text-gray-500 font-medium mt-1 text-sm md:text-base">AI-powered assessment of {profile.name}'s dietary intake.</p>
                     </div>
 
                     {!data && !loading && (
                         <button
                             onClick={handleAnalyze}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-200 transition-all transform hover:scale-105 flex items-center gap-2"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-indigo-100 transition-all transform hover:scale-105 flex items-center gap-2 text-sm"
                         >
-                            <span>🔍</span> Detect Gaps
+                            <span className="material-symbols-outlined text-lg">analytics</span>
+                            Analyze Intake
                         </button>
                     )}
                 </div>
@@ -99,11 +121,11 @@ const NutritionGaps = ({ profile, meals }) => {
                                 </h3>
 
                                 {data.deficiencies.length === 0 ? (
-                                    <div className="bg-green-50 text-green-700 p-6 rounded-2xl border border-green-100 flex items-center gap-4">
-                                        <span className="text-3xl">🎉</span>
+                                    <div className={`p-6 rounded-2xl border flex items-center gap-4 ${data.score < 20 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' : 'bg-green-50 border-green-100 text-green-700'}`}>
+                                        <span className="text-3xl">{data.score < 20 ? '⚠️' : '🎉'}</span>
                                         <div>
-                                            <h4 className="font-bold text-lg">Excellent!</h4>
-                                            <p>No significant micronutrient gaps detected based on recent logs.</p>
+                                            <h4 className="font-bold text-lg">{data.score < 20 ? 'Analysis Incomplete' : 'Excellent!'}</h4>
+                                            <p>{data.score < 20 ? 'Could not detect specific gaps. Please log more detailed meals.' : 'No significant micronutrient gaps detected based on recent logs.'}</p>
                                         </div>
                                     </div>
                                 ) : (

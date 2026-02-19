@@ -290,10 +290,60 @@ Do not include any text outside the JSON block.
 
     except Exception as e:
         print(f"Error analyzing nutrition: {e}")
-        # Fallback/Mock response if LLM fails
-        return {
-            "analysis_summary": "Unable to analyze at this moment. Please try again.",
-            "deficiencies": [],
-            "score": 0
-        }
+        return perform_rule_based_analysis(request.meals, request.age)
+
+def perform_rule_based_analysis(meals, age):
+    """Fallback analysis when LLM is unavailable."""
+    meal_names = " ".join([m.name.lower() for m in meals])
+    gaps = []
+    
+    # 1. Iron Check (Spinach, lentils, meat, dates, pomegranate)
+    if not any(x in meal_names for x in ['palak', 'spinach', 'lentil', 'dal', 'meat', 'chicken', 'fish', 'egg', 'poha', 'dates', 'pomegranate']):
+        gaps.append({
+            "nutrient": "Iron",
+            "status": "Low",
+            "current_estimated": "Low",
+            "target": "10mg",
+            "suggestion": "Add spinach, dal, or eggs"
+        })
+
+    # 2. Calcium Check (Milk, curd, yogurt, cheese, paneer, ragi)
+    if not any(x in meal_names for x in ['milk', 'curd', 'yogurt', 'cheese', 'paneer', 'ragi']):
+        gaps.append({
+            "nutrient": "Calcium",
+            "status": "Low",
+            "current_estimated": "Low",
+            "target": "600mg",
+            "suggestion": "Add a glass of milk or curd"
+        })
+        
+    # 3. Vitamin C Check (Citrus, lemon, orange, guava, tomato, amla)
+    if not any(x in meal_names for x in ['orange', 'lemon', 'guava', 'tomato', 'amla', 'capsicum', 'fruit']):
+        gaps.append({
+            "nutrient": "Vitamin C",
+            "status": "Moderate",
+            "current_estimated": "Low",
+            "target": "40mg",
+            "suggestion": "Add orange or guava"
+        })
+        
+    # 4. Protein Check (Dal, eggs, meat, paneer, soya, nuts)
+    if not any(x in meal_names for x in ['dal', 'egg', 'chicken', 'fish', 'paneer', 'soya', 'nut', 'sprout']):
+        gaps.append({
+            "nutrient": "Protein",
+            "status": "Low",
+            "current_estimated": "Low",
+            "target": "20g",
+            "suggestion": "Add lentils/dal or eggs"
+        })
+
+    score = 100 - (len(gaps) * 15)
+    summary = "Basic analysis based on food groups (AI unavailable)." if gaps else "Diet looks balanced based on food groups."
+
+    return {
+        "analysis_summary": summary,
+        "deficiencies": gaps,
+        "score": max(score, 40)
+    }
+
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getProfileById as getProfile } from '../../api/profile.api';
-import { getProfileMeals as getMeals, logMeal, deleteMeal } from '../../api/meal.api';
+import { logMeal, deleteFoodItem } from '../../api/meal.api';
 import { getMealFrequency, getPrescriptions } from '../../api/analytics.api';
 import { getGrowthHistory, deleteGrowthRecord } from '../../api/growth.api'; // Import API
 import MealLogForm from '../../components/parent/MealLogForm';
@@ -12,6 +12,9 @@ import TipCard from '../../components/common/TipCard';
 import GrowthTimeline from '../../components/growth/GrowthTimeline'; // Import Component
 import UpdateGrowthModal from '../../components/growth/UpdateGrowthModal'; // Import Component
 import NutritionGaps from '../../components/parent/NutritionGaps'; // Import Component
+import DailyMealCard from '../../components/meal/DailyMealCard';
+import DateTimeline from '../../components/meal/DateTimeline';
+import { getMealsByDate, getMealHistory } from '../../api/meal.api'; // Updated imports
 
 const ChildDetails = () => {
     const { id } = useParams();
@@ -29,30 +32,58 @@ const ChildDetails = () => {
     const [prescriptions, setPrescriptions] = useState([]);
 
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [modalInitialData, setModalInitialData] = useState(null);
+
     const [isGrowthModalOpen, setIsGrowthModalOpen] = useState(false); // Growth Modal State
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [profileRes, mealsRes, chartRes, prescRes, growthRes] = await Promise.all([
+            const [profileRes, historyRes, dailyRes, chartRes, prescRes, growthRes] = await Promise.all([
                 getProfile(id),
-                getMeals(id),
+                getMealHistory(id),
+                getMealsByDate(id, selectedDate),
                 getMealFrequency(id),
                 getPrescriptions(id),
-                getGrowthHistory(id) // Fetch Growth
+                getGrowthHistory(id)
             ]);
             setProfile(profileRes.data || profileRes);
-            setMeals(mealsRes.data || mealsRes || []);
+            // historyRes.data.logs might be the array, depends on API struct
+            // If getMealHistory returns { logs: [], streak: 0 }
+            const histData = historyRes.data || historyRes;
+            setMeals(histData.logs || []);
+            // We use standard "meals" state for history, and a new one for daily?
+            // Actually, let's keep "meals" as the DAILY log object for the selected date
+            // And maybe a separate "history" state for timeline dots?
+
+            // Correction: Previous code used `meals` as a list of recent logs.
+            // New design: `meals` should probably be the daily log object for `DailyMealCard`.
+            // Let's create `dailyLog` state.
+
+            setDailyLog(dailyRes.data || dailyRes);
+            setHistory(histData.logs || []);
+            setStreak(histData.streak || 0);
+
             setChartData(chartRes.data || chartRes || []);
             setPrescriptions(prescRes.data || prescRes || []);
             setGrowthRecords(growthRes.data || growthRes || []);
         } catch (error) {
             console.error(error);
-            navigate('/parent/dashboard');
+            // navigate('/parent/dashboard'); // Don't redirect on error to allow retry or partial load
         } finally {
             setLoading(false);
         }
     };
+
+    // Additional state for new logic
+    const [dailyLog, setDailyLog] = useState(null);
+    const [history, setHistory] = useState([]);
+    const [streak, setStreak] = useState(0);
+
+    useEffect(() => {
+        if (id) fetchData();
+    }, [id, selectedDate]);
 
     const refreshGrowth = async () => {
         const res = await getGrowthHistory(id);
@@ -62,23 +93,19 @@ const ChildDetails = () => {
         setProfile(profRes.data || profRes);
     };
 
-    useEffect(() => {
-        if (id) fetchData();
-    }, [id]);
-
     const handleMealLogged = () => {
         setIsLogModalOpen(false);
         fetchData();
     };
 
-    const handleDelete = async (mealId) => {
-        if (window.confirm('Are you sure you want to delete this meal log?')) {
-            try {
-                await deleteMeal(mealId);
-                fetchData();
-            } catch (error) {
-                console.error('Failed to delete meal:', error);
-            }
+    const handleDeleteItem = async (logId, mealType, itemId) => {
+        if (!window.confirm("Remove this item?")) return;
+        try {
+            await deleteFoodItem(logId, mealType, itemId);
+            // Refresh data
+            fetchData();
+        } catch (error) {
+            console.error("Failed to delete item", error);
         }
     };
 
@@ -269,22 +296,42 @@ const ChildDetails = () => {
                                     </div>
 
                                     {/* Stats Row */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                                            <p className="text-xs text-gray-400 font-bold uppercase">Meals</p>
-                                            <p className="text-2xl font-black text-gray-800">{stats.meals}</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:border-indigo-100 transition-colors">
+                                            <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <span className="material-symbols-outlined">restaurant</span>
+                                            </div>
+                                            <p className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-1">Meals Logged</p>
+                                            <p className="text-3xl font-black text-gray-800">{stats.meals}</p>
                                         </div>
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                                            <p className="text-xs text-gray-400 font-bold uppercase">Avg Calories</p>
-                                            <p className="text-2xl font-black text-gray-800">{stats.avgCal}</p>
+
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:border-indigo-100 transition-colors">
+                                            <div className="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <span className="material-symbols-outlined">local_fire_department</span>
+                                            </div>
+                                            <p className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-1">Avg Calories</p>
+                                            <p className="text-3xl font-black text-gray-800">{stats.avgCal}</p>
                                         </div>
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                                            <p className="text-xs text-gray-400 font-bold uppercase">Water</p>
-                                            <p className="text-2xl font-black text-gray-800">{stats.water}L</p>
+
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:border-indigo-100 transition-colors">
+                                            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <span className="material-symbols-outlined">water_drop</span>
+                                            </div>
+                                            <p className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-1">Water Intake</p>
+                                            <p className="text-3xl font-black text-gray-800 flex items-end gap-1">
+                                                {stats.water}<span className="text-lg font-bold text-gray-400 mb-1">L</span>
+                                            </p>
                                         </div>
-                                        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-xl shadow-lg shadow-indigo-200 text-white flex flex-col justify-center items-center cursor-pointer hover:scale-105 transition" onClick={() => setActiveTab('growth')}>
-                                            <p className="text-xs font-bold uppercase opacity-80 mb-1">Current BMI</p>
-                                            <p className="text-4xl font-black">{growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].bmi : 'N/A'}</p>
+
+                                        <div
+                                            onClick={() => setActiveTab('growth')}
+                                            className="bg-indigo-600 p-6 rounded-2xl shadow-lg shadow-indigo-200 text-white flex flex-col items-center text-center cursor-pointer hover:bg-indigo-700 transition-all transform hover:scale-105"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-3 backdrop-blur-sm">
+                                                <span className="material-symbols-outlined">monitor_weight</span>
+                                            </div>
+                                            <p className="text-indigo-200 font-bold text-xs uppercase tracking-wider mb-1">Current BMI</p>
+                                            <p className="text-3xl font-black">{growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].bmi : 'N/A'}</p>
                                         </div>
                                     </div>
 
@@ -293,66 +340,48 @@ const ChildDetails = () => {
                                         <NutritionGaps profile={profile} meals={meals} />
                                     </div>
 
-                                    {/* Recent Logs Section */}
+                                    {/* Date Timeline & Meal Card */}
                                     <div>
-                                        <div className="flex justify-between items-center mb-6">
-                                            <h2 className="text-2xl font-bold text-gray-900">Recent Logs</h2>
-                                            <button
-                                                onClick={() => setIsLogModalOpen(true)}
-                                                className="px-6 py-2 bg-primary text-white font-bold rounded-xl shadow hover:bg-blue-600 transition flex items-center gap-2"
-                                            >
-                                                <span>+</span> Log Meal
-                                            </button>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h2 className="text-2xl font-bold text-gray-900">Daily Log</h2>
+                                            {/* Streak Badge Small */}
+                                            <div className="flex items-center gap-1 bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">
+                                                <span>🔥</span> {streak} Day Streak
+                                            </div>
                                         </div>
 
-                                        {meals.length === 0 ? (
-                                            <div className="bg-white rounded-2xl p-12 text-center border-2 border-dashed border-gray-200">
-                                                <div className="text-5xl mb-4 grayscale opacity-50">🍽️</div>
-                                                <h3 className="text-lg font-bold text-gray-900">No meals logged yet</h3>
-                                                <p className="text-gray-500 mb-6">Start tracking {profile.name}'s nutrition today.</p>
-                                                <button onClick={() => setIsLogModalOpen(true)} className="text-primary font-bold hover:underline">Log the first meal</button>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                {meals.map((meal) => (
-                                                    <div key={meal._id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 transition hover:shadow-md flex justify-between items-center group">
-                                                        <div className="flex items-center gap-4">
-                                                            {meal.photoUrl ? (
-                                                                <img src={meal.photoUrl} alt="Meal" className="w-16 h-16 rounded-xl object-cover border border-gray-100" />
-                                                            ) : (
-                                                                <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-2xl ${meal.mealType === 'breakfast' ? 'bg-orange-100 text-orange-600' :
-                                                                    meal.mealType === 'lunch' ? 'bg-green-100 text-green-600' :
-                                                                        meal.mealType === 'dinner' ? 'bg-indigo-100 text-indigo-600' :
-                                                                            'bg-gray-100 text-gray-600'
-                                                                    }`}>
-                                                                    {meal.mealType === 'breakfast' && '🍳'}
-                                                                    {meal.mealType === 'lunch' && '🥗'}
-                                                                    {meal.mealType === 'dinner' && '🍲'}
-                                                                    {meal.mealType === 'snack' && '🍎'}
-                                                                </div>
-                                                            )}
-                                                            <div>
-                                                                <h4 className="font-bold text-lg text-gray-900 capitalize">{meal.mealType}</h4>
-                                                                <p className="text-sm text-gray-500">{meal.foodItems.map(i => i.name).join(', ')}</p>
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <span className="text-xs font-bold text-gray-400">{new Date(meal.date).toLocaleDateString()} at {meal.time || 'N/A'}</span>
-                                                                    {meal.nutrients?.calories && <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600 font-bold">{meal.nutrients.calories} kcal</span>}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => handleDelete(meal._id)}
-                                                                className="w-10 h-10 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition opacity-0 group-hover:opacity-100"
-                                                                title="Delete"
-                                                            >
-                                                                🗑️
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                        {/* Generate last 14 days for timeline */}
+                                        <DateTimeline
+                                            dates={Array.from({ length: 14 }).map((_, i) => {
+                                                const d = new Date();
+                                                d.setDate(d.getDate() - i);
+                                                const dStr = d.toISOString().split('T')[0];
+                                                // Find completion count in history
+                                                const log = history.find(h => h.date.split('T')[0] === dStr);
+                                                // If backend returns date as string YYYY-MM-DD
+                                                // const log = history.find(h => h.date === dStr);
+                                                return {
+                                                    date: dStr,
+                                                    completedCount: log ? log.completedMealsCount : 0
+                                                };
+                                            }).reverse()}
+                                            selectedDate={selectedDate}
+                                            onSelect={setSelectedDate}
+                                            streak={streak}
+                                        />
+
+                                        <DailyMealCard
+                                            date={selectedDate}
+                                            log={dailyLog}
+                                            onAdd={(type) => {
+                                                setModalInitialData({ date: selectedDate, mealType: type });
+                                                setIsLogModalOpen(true);
+                                            }}
+                                            onEdit={(type) => {
+                                                setModalInitialData({ date: selectedDate, mealType: type });
+                                                setIsLogModalOpen(true);
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -424,6 +453,7 @@ const ChildDetails = () => {
             >
                 <MealLogForm
                     profileId={id}
+                    initialData={modalInitialData}
                     onSuccess={handleMealLogged}
                     onCancel={() => setIsLogModalOpen(false)}
                 />
@@ -436,7 +466,7 @@ const ChildDetails = () => {
                 childId={id}
                 onChanged={refreshGrowth}
             />
-        </div>
+        </div >
     );
 };
 
