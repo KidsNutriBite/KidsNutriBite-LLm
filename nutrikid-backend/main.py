@@ -103,6 +103,16 @@ class QueryRequest(BaseModel):
     prescription: str = "None"
     audience: str = "parent"
 
+class MealLog(BaseModel):
+    name: str
+    portion: str = "1 serving"
+
+class NutritionAnalysisRequest(BaseModel):
+    age: int
+    gender: str = "neutral"
+    meals: list[MealLog]
+
+
 def retrieve_context(query, k=4):
     if index is None or documents is None or embedder is None:
         return "No context available (Index/Documents not loaded)."
@@ -219,3 +229,71 @@ async def ask_ai(request: QueryRequest):
     answer = generate_answer(request.question, profile)
 
     return {"answer": answer}
+
+@app.post("/analyze")
+async def analyze_nutrition(request: NutritionAnalysisRequest):
+    # 1. Construct prompt for LLM to analyze nutrition
+    meal_descriptions = ", ".join([f"{m.name} ({m.portion})" for m in request.meals])
+    
+    prompt = f"""
+You are a Clinical Pediatric Nutritionist AI. 
+Explain the micronutrient gaps based on the child's intake today vs Recommended Dietary Allowance (RDA) for a {request.age} year old.
+
+Intake Today: {meal_descriptions}
+
+Task:
+1. Estimate the micronutrient content (Iron, Calcium, Vit A, Vit C, Vit D, Zinc, Magnesium).
+2. Compare against RDA for age {request.age}.
+3. Identify SUBSTANTIAL deficiencies (Gaps).
+4. For each gap, suggest 1 specific food to add.
+
+Format the output strictly as JSON:
+```json
+{{
+  "analysis_summary": "Short clinical summary (max 2 sentences).",
+  "deficiencies": [
+    {{
+      "nutrient": "Iron",
+      "status": "Low" | "Very Low",
+      "current_estimated": "3mg",
+      "target": "10mg",
+      "suggestion": "Add spinach or lentils"
+    }}
+  ],
+  "score": 85
+}}
+```
+Do not include any text outside the JSON block.
+"""
+
+    try:
+        response = client.chat_completion(
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=600,
+            temperature=0.2
+        )
+        content = response.choices[0].message.content
+        
+        # Extract JSON from potential markdown code blocks
+        import json
+        import re
+        
+        json_match = re.search(r'```json\n(.*?)\n```', content, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(1)
+        else:
+            # Try to find just braces if no code block
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            json_str = json_match.group(0) if json_match else "{}"
+            
+        return json.loads(json_str)
+
+    except Exception as e:
+        print(f"Error analyzing nutrition: {e}")
+        # Fallback/Mock response if LLM fails
+        return {
+            "analysis_summary": "Unable to analyze at this moment. Please try again.",
+            "deficiencies": [],
+            "score": 0
+        }
+

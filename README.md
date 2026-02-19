@@ -11,6 +11,7 @@ Build a production-quality, full-stack MERN application for pediatric nutrition 
 - **Validation**: Zod
 - **Gamification**: Custom XP/Leveling Engine
 
+
 ## Setup Instructions
 
 1. **Install Dependencies**

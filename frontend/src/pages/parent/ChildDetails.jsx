@@ -11,6 +11,7 @@ import MealFrequencyChart from '../../components/charts/MealFrequencyChart';
 import TipCard from '../../components/common/TipCard';
 import GrowthTimeline from '../../components/growth/GrowthTimeline'; // Import Component
 import UpdateGrowthModal from '../../components/growth/UpdateGrowthModal'; // Import Component
+import NutritionGaps from '../../components/parent/NutritionGaps'; // Import Component
 
 const ChildDetails = () => {
     const { id } = useParams();
@@ -285,6 +286,11 @@ const ChildDetails = () => {
                                             <p className="text-xs font-bold uppercase opacity-80 mb-1">Current BMI</p>
                                             <p className="text-4xl font-black">{growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].bmi : 'N/A'}</p>
                                         </div>
+                                    </div>
+
+                                    {/* Nutrition Gaps AI Detector */}
+                                    <div className="w-full">
+                                        <NutritionGaps profile={profile} meals={meals} />
                                     </div>
 
                                     {/* Recent Logs Section */}
