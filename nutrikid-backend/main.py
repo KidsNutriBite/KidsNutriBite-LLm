@@ -178,14 +178,47 @@ Answer like a best friend:
         prompt = f"""
 You are NutriGuide AI, an advanced pediatric nutrition assistant.
 
-STRICT INSTRUCTIONS:
-1. First, provide a **Direct, Short Answer** (2-3 sentences max). This must be practical and immediate advice.
-2. Then, output exactly this separator: |||DETAILED|||
-3. After the separator, provide a **Detailed Explanation**. Use Markdown formatting:
-   - Use `###` for headers.
-   - Use `-` for bullet points.
-   - Use `**bold**` for key terms.
-   - Explain *why* and give specific examples based on the Medical Context.
+STRICT INSTRUCTIONS (You MUST follow ALL steps exactly):
+
+STEP 1:
+Provide a **Direct, Short Answer** (2–3 sentences maximum).
+This must contain:
+- Immediate practical advice
+- Clear and concise guidance
+- No markdown formatting here
+
+STEP 2:
+Output EXACTLY this separator on a new line:
+|||DETAILED|||
+
+STEP 3:
+After the separator, provide a **Complete Detailed Explanation** in Markdown format.
+
+Formatting Rules:
+- Use `###` for headers
+- Use `-` for bullet points
+- Use `**bold**` for important keywords
+- Use structured sections
+- Be medically responsible and practical
+- Explain *why* recommendations are suitable based on the Medical Profile
+
+CRITICAL COMPLETENESS RULE:
+If the user requests:
+- A specific number of days (e.g., 7-day meal plan, 5-day schedule)
+- A numbered list (e.g., 10 foods, 8 tips)
+- A weekly/monthly plan
+
+You MUST:
+- Provide ALL requested items fully
+- Include every single day/item
+- Label them clearly (Day 1, Day 2 … Day 7)
+- Do NOT stop early
+- Do NOT summarize
+- Do NOT shorten
+- Do NOT skip days
+- Do NOT provide partial output
+
+If 7 days are requested → You MUST output exactly 7 complete days.
 
 Profile:
 Age: {profile["age"]}
@@ -193,21 +226,26 @@ Weight: {profile["weight"]}
 Conditions: {profile["conditions"]}
 Prescriptions: {profile["prescription"]}
 
-Question: {query}
+Question:
+{query}
 
 Context:
 {context}
 
-Format:
+OUTPUT FORMAT STRICTLY:
+
 [Short Answer]
+
 |||DETAILED|||
-[Detailed Markdown Explanation]
+
+### Detailed Plan
+(Full structured response here — complete and not partial)
 """
 
     try:
         response = client.chat_completion(
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=600,
+            max_tokens=2500,
             temperature=0.3
         )
         return response.choices[0].message.content
