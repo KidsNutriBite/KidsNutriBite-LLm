@@ -16,7 +16,8 @@ export const registerUser = asyncHandler(async (req, res) => {
 
     if (!validation.success) {
         res.status(400);
-        throw new Error(validation.error.errors[0].message);
+        const errorMessages = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+        throw new Error(errorMessages);
     }
 
     const { name, email, password, role, title, ...roleData } = validation.data;

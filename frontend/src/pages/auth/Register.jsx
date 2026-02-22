@@ -8,6 +8,7 @@ import SimpleNavbar from '../../components/common/SimpleNavbar';
 const Register = () => {
     const [searchParams] = useSearchParams();
     const [formData, setFormData] = useState({
+        title: '',
         name: '',
         email: '',
         password: '',
@@ -123,8 +124,26 @@ const Register = () => {
                     <form onSubmit={handleSubmit} className="space-y-2">
                         <div className="space-y-2">
                             {/* Common Fields */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-0.5">
+                            <div className="grid grid-cols-4 gap-3">
+                                <div className="col-span-1 space-y-0.5">
+                                    <label className="text-[#0d161b] dark:text-slate-200 text-[10px] uppercase font-bold ml-1">Title</label>
+                                    <div className="relative">
+                                        <select
+                                            name="title"
+                                            value={formData.title || ''}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full pl-2 pr-2 py-2 bg-white dark:bg-slate-800 border compacted-input border-slate-200 dark:border-slate-700 rounded-lg text-xs text-[#0d161b] dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all font-medium appearance-none"
+                                        >
+                                            <option value="" disabled>Title</option>
+                                            <option value="Mr">Mr</option>
+                                            <option value="Ms">Ms</option>
+                                            <option value="Mrs">Mrs</option>
+                                        </select>
+                                        <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">expand_more</span>
+                                    </div>
+                                </div>
+                                <div className="col-span-3 space-y-0.5">
                                     <label className="text-[#0d161b] dark:text-slate-200 text-[10px] uppercase font-bold ml-1">Full Name</label>
                                     <div className="relative">
                                         <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#4c799a] text-base">person</span>
@@ -139,21 +158,21 @@ const Register = () => {
                                         />
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="space-y-0.5">
-                                    <label className="text-[#0d161b] dark:text-slate-200 text-[10px] uppercase font-bold ml-1">Email</label>
-                                    <div className="relative">
-                                        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#4c799a] text-base">alternate_email</span>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full pl-8 pr-2 py-2 bg-white dark:bg-slate-800 border compacted-input border-slate-200 dark:border-slate-700 rounded-lg text-xs text-[#0d161b] dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400 font-medium"
-                                            placeholder="email@example.com"
-                                        />
-                                    </div>
+                            <div className="space-y-0.5">
+                                <label className="text-[#0d161b] dark:text-slate-200 text-[10px] uppercase font-bold ml-1">Email</label>
+                                <div className="relative">
+                                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#4c799a] text-base">alternate_email</span>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full pl-8 pr-2 py-2 bg-white dark:bg-slate-800 border compacted-input border-slate-200 dark:border-slate-700 rounded-lg text-xs text-[#0d161b] dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400 font-medium"
+                                        placeholder="email@example.com"
+                                    />
                                 </div>
                             </div>
 

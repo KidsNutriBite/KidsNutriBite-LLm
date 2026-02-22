@@ -14,7 +14,7 @@ import ChildDetails from './pages/parent/ChildDetails';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientDetails from './pages/doctor/PatientDetails';
 import DoctorProfile from './pages/doctor/DoctorProfile';
-import DoctorConsultations from './pages/doctor/DoctorConsultations';
+import DoctorConsultations from './pages/doctor/DoctorConsultations';   
 import DoctorResources from './pages/doctor/DoctorResources';
 import DoctorAnalytics from './pages/doctor/DoctorAnalytics';
 import KidsLayout from './layouts/KidsLayout';

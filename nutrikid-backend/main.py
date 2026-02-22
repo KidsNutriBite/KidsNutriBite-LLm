@@ -347,3 +347,49 @@ def perform_rule_based_analysis(meals, age):
     }
 
 
+
+from services.nutrition_analysis import calculate_deficiencies, analyze_trends
+from services.risk_engine import assess_risk
+from services.plan_generator import generate_diet_plan
+from models import DietPlanRequest, DietPlanResponse
+
+@app.post("/generate-adaptive-plan", response_model=DietPlanResponse)
+async def generate_adaptive_plan(request: DietPlanRequest):
+    print(f"Received localized plan request for child age: {request.child_profile.age}")
+    
+    # 1. PRE-ANALYSIS PHASE
+    deficiencies = calculate_deficiencies([m.dict() for m in request.meal_logs], request.child_profile.age)
+    trend = analyze_trends([m.dict() for m in request.meal_logs])
+    
+    # 2. RISK CHECK
+    risk_assessment = assess_risk(
+        request.child_profile.dict(), 
+        deficiencies, 
+        request.doctor_notes or ""
+    )
+    
+    print(f"Risk Level: {risk_assessment.risk_level}")
+    
+    # If High Risk, Halt
+    if not risk_assessment.can_generate_plan:
+        return DietPlanResponse(
+            status="REQUIRES_DOCTOR_REVIEW",
+            reason=risk_assessment.reason,
+            risk_level=risk_assessment.risk_level,
+            doctor_summary={
+                "risk_flags": risk_assessment.flags,
+                "recommendation": "Manual Clinical Review Required"
+            }
+        )
+
+    # 3. PERSONALIZED PLAN GENERATION
+    diet_plan = await generate_diet_plan(
+        client,
+        request.child_profile.dict(),
+        deficiencies,
+        risk_assessment.risk_level,
+        request.duration_days,
+        request.doctor_notes or ""
+    )
+    
+    return diet_plan
