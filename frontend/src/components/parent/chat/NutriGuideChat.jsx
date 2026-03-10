@@ -78,6 +78,10 @@ const NutriGuideChat = ({ onBack, profiles = [] }) => {
                 },
                 body: JSON.stringify({
                     question: msgText,
+                    history: messages.map(msg => ({
+                        role: msg.sender === 'user' ? 'user' : 'model',
+                        content: msg.text
+                    })),
                     ...profileData
                 }),
             });

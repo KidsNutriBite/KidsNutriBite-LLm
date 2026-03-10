@@ -12,14 +12,15 @@ from huggingface_hub import InferenceClient
 embedder = None
 index = None
 documents = None
-client = None
+hf_client = None
+gemini_client = None
 
 # =============================
 # Lifespan Manager
 # =============================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global embedder, index, documents, client
+    global embedder, index, documents, hf_client, gemini_client
     
     # 1. Load FAISS Index + Docs (First, to check dimension)
     index_dim = 384 # Default to small model dimension
@@ -65,17 +66,28 @@ async def lifespan(app: FastAPI):
     from dotenv import load_dotenv
     load_dotenv()
     
-    # Initialize LLM Client
-    # Note: Ideally, use an environment variable for the token
-    token = os.getenv("HF_TOKEN")
-    if not token:
-        print("Warning: HF_TOKEN environment variable not set. LLM features may not work.")
+    # Initialize Hugging Face LLM Client
+    hf_token = os.getenv("HF_TOKEN")
+    if not hf_token:
+        print("Warning: HF_TOKEN environment variable not set. HF LLM features may not work.")
     
-    client = InferenceClient(
-        model="mistralai/Mistral-7B-Instruct-v0.2",
-        token=token
+    hf_client = InferenceClient(
+        model="HuggingFaceH4/zephyr-7b-beta",
+        token=hf_token
     )
-    
+
+    # Initialize Gemini LLM Client Pipeline 
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    if gemini_api_key:
+        try:
+            from google import genai
+            gemini_client = genai.Client(api_key=gemini_api_key)
+            print("Gemini API Client initialized successfully.")
+        except ImportError:
+            print("google-genai library is not installed. Gemini fallback will be unavailable.")
+    else:
+        print("Warning: GEMINI_API_KEY environment variable not set. Gemini fallback will not be available.")
+
     yield
     
     # Clean up resources if needed
@@ -95,8 +107,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class Message(BaseModel):
+    role: str
+    content: str
+
 class QueryRequest(BaseModel):
     question: str
+    history: list[Message] = []
     age: str = "5 years"
     weight: str = "Unknown"
     conditions: str = "None"
@@ -142,7 +159,7 @@ def retrieve_context(query, k=4):
 
     return "\n".join(retrieved_docs)
 
-def generate_answer(query, profile):
+def generate_answer(query, history, profile):
     context = retrieve_context(query)
 
     # If running in mock mode because files are missing
@@ -179,13 +196,11 @@ Answer like a best friend:
 You are NutriGuide AI, an advanced pediatric nutrition assistant.
 
 STRICT INSTRUCTIONS:
-1. First, provide a **Direct, Short Answer** (2-3 sentences max). This must be practical and immediate advice.
-2. Then, output exactly this separator: |||DETAILED|||
-3. After the separator, provide a **Detailed Explanation**. Use Markdown formatting:
-   - Use `###` for headers.
-   - Use `-` for bullet points.
-   - Use `**bold**` for key terms.
-   - Explain *why* and give specific examples based on the Medical Context.
+1. If the user's question involves a symptom (e.g., fever, stomach ache) and lacks crucial context (e.g., how many days they've had it, severity, other symptoms), you MUST ask 1-2 brief follow-up questions to gather more information BEFORE giving a detailed answer.
+2. If you have enough context, first provide a **Direct, Short Answer** (2-3 sentences max) with practical and immediate advice.
+3. Then, output exactly this separator: |||DETAILED|||
+4. After the separator, provide a **Detailed Explanation**. Use Markdown formatting (### for headers, - for bullets, **bold** for key terms). Explain *why* and give specific examples.
+5. Do NOT output |||DETAILED||| if you are just asking a clarifying question.
 
 Profile:
 Age: {profile["age"]}
@@ -193,28 +208,65 @@ Weight: {profile["weight"]}
 Conditions: {profile["conditions"]}
 Prescriptions: {profile["prescription"]}
 
-Question: {query}
-
 Context:
 {context}
 
-Format:
+Format if answering:
 [Short Answer]
 |||DETAILED|||
 [Detailed Markdown Explanation]
+
+Format if asking clarifying question:
+[Just ask the question naturally and empathetically]
 """
 
+    # Build messages array including history
+    formatted_messages = []
+    for msg in history:
+        # Convert "model" to "assistant" for HF, or keep as is.
+        # Gemini uses 'user' and 'model'. HF uses 'user' and 'assistant'.
+        hf_role = "assistant" if msg.role == "model" or msg.role == "assistant" else "user"
+        formatted_messages.append({"role": hf_role, "content": msg.content})
+    
+    # Add the final system prompt + query
+    # We pass the system context as part of the new user prompt since some APIs don't strictly support system roles
+    final_query = f"{prompt}\n\nQuestion: {query}"
+    formatted_messages.append({"role": "user", "content": final_query})
+
     try:
-        response = client.chat_completion(
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=600,
-            temperature=0.3
-        )
-        return response.choices[0].message.content
+        if hf_client:
+            response = hf_client.chat_completion(
+                messages=formatted_messages,
+                max_tokens=600,
+                temperature=0.3
+            )
+            return response.choices[0].message.content
+        raise Exception("HF Client not properly defined.")
     except Exception as e:
-        import traceback
-        traceback.print_exc()  # Print full error to terminal
-        return f"Error generating response: {e}"
+        print(f"HuggingFace Failed in `generate_answer`: {e}. Attempting fallback to Gemini...")
+        if gemini_client:
+            try:
+                # Gemini expects history format: [{"role": "user", "parts": ["..."]}, {"role": "model", "parts": ["..."]}]
+                # Note: google-genai structured differently. We will use the client.models.generate_content API
+                # passing a list of contents.
+                gemini_contents = []
+                for msg in history:
+                    # gemini role is either 'user' or 'model'
+                    g_role = "model" if msg.role == "assistant" or msg.role == "model" else "user"
+                    gemini_contents.append({"role": g_role, "parts": [{"text": msg.content}]})
+                
+                gemini_contents.append({"role": "user", "parts": [{"text": final_query}]})
+                
+                response = gemini_client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=gemini_contents,
+                )
+                return response.text
+            except Exception as gemini_e:
+                 print(f"Gemini Fallback also failed: {gemini_e}")
+                 return f"Error: Both HuggingFace and Gemini models failed to generate response."
+        else:
+            return f"Error generating response: HF Failed and Gemini Fallback not available ({e})"
 
 @app.post("/ask")
 async def ask_ai(request: QueryRequest):
@@ -226,7 +278,7 @@ async def ask_ai(request: QueryRequest):
         "audience": request.audience
     }
 
-    answer = generate_answer(request.question, profile)
+    answer = generate_answer(request.question, request.history, profile)
 
     return {"answer": answer}
 
@@ -267,29 +319,48 @@ Do not include any text outside the JSON block.
 """
 
     try:
-        response = client.chat_completion(
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=600,
-            temperature=0.2
-        )
-        content = response.choices[0].message.content
-        
-        # Extract JSON from potential markdown code blocks
-        import json
-        import re
-        
-        json_match = re.search(r'```json\n(.*?)\n```', content, re.DOTALL)
-        if json_match:
-            json_str = json_match.group(1)
+        if hf_client:
+             response = hf_client.chat_completion(
+                 messages=[{"role": "user", "content": prompt}],
+                 max_tokens=600,
+                 temperature=0.2
+             )
+             content = response.choices[0].message.content
         else:
-            # Try to find just braces if no code block
-            json_match = re.search(r'\{.*\}', content, re.DOTALL)
-            json_str = json_match.group(0) if json_match else "{}"
-            
-        return json.loads(json_str)
-
+             raise Exception("HF Client not properly defined")
+        
     except Exception as e:
-        print(f"Error analyzing nutrition: {e}")
+        print(f"HF Error analyzing nutrition: {e}. Falling back to Gemini...")
+        if gemini_client:
+            try:
+                response = gemini_client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=prompt,
+                )
+                content = response.text
+            except Exception as gemini_e:
+                 print(f"Gemini fallback error analyzing nutrition: {gemini_e}")
+                 return perform_rule_based_analysis(request.meals, request.age)
+        else:
+             print("No Gemini Client available. Using rule-based fallback...")
+             return perform_rule_based_analysis(request.meals, request.age)
+
+    # Extract JSON from potential markdown code blocks
+    import json
+    import re
+    
+    json_match = re.search(r'```json\n(.*?)\n```', content, re.DOTALL)
+    if json_match:
+        json_str = json_match.group(1)
+    else:
+        # Try to find just braces if no code block
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        json_str = json_match.group(0) if json_match else "{}"
+        
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        print(f"Failed to decode JSON from model output. Falling back...")
         return perform_rule_based_analysis(request.meals, request.age)
 
 def perform_rule_based_analysis(meals, age):
@@ -384,7 +455,8 @@ async def generate_adaptive_plan(request: DietPlanRequest):
 
     # 3. PERSONALIZED PLAN GENERATION
     diet_plan = await generate_diet_plan(
-        client,
+        hf_client,
+        gemini_client,
         request.child_profile.dict(),
         deficiencies,
         risk_assessment.risk_level,
@@ -393,3 +465,7 @@ async def generate_adaptive_plan(request: DietPlanRequest):
     )
     
     return diet_plan
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

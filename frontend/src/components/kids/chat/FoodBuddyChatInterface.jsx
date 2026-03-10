@@ -43,6 +43,10 @@ const FoodBuddyChatInterface = ({ onBack, profile }) => {
                 },
                 body: JSON.stringify({
                     question: msgText,
+                    history: messages.map(msg => ({
+                        role: msg.sender === 'me' ? 'user' : 'model',
+                        content: msg.text
+                    })),
                     // Use profile data if available, otherwise defaults
                     age: profile?.age ? `${profile.age} years` : "5 years",
                     weight: profile?.weight ? `${profile.weight}kg` : "20kg",
