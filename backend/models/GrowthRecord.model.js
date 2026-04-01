@@ -14,6 +14,9 @@ const growthRecordSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    waistCircumference: {
+        type: Number
+    },
     bmi: {
         type: Number
         // Auto-calculated

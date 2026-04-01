@@ -11,7 +11,7 @@ This document outlines the pediatrician-requested improvements and the updated s
   - Add "Relationship with Child" field (Mother, Father, Guardian, Caretaker).
 - [x] **1.2 Login Session UX**
   - Update login message to: *"Stay logged in to receive health updates and reminders for your child."*
-- [ ] **1.3 Child Profile Creation**
+- [x] **1.3 Child Profile Creation**
   - Make the following fields mandatory: Date of Birth (DOB), Gender, Initial Height, Initial Weight, Waist Circumference.
   - Automatically calculate child's age from DOB and prevent manual age input.
   - Automate birthday wishes display based on DOB.

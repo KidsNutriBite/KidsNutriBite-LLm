@@ -20,6 +20,15 @@ const ParentDashboard = () => {
     const [selectedProfileForAccess, setSelectedProfileForAccess] = useState('');
     const [view, setView] = useState('dashboard'); // 'dashboard' | 'chat'
 
+    const isBirthdayToday = (dobString) => {
+        if (!dobString) return false;
+        const dob = new Date(dobString);
+        const today = new Date();
+        return dob.getDate() === today.getDate() && dob.getMonth() === today.getMonth();
+    };
+
+    const birthdayProfiles = profiles.filter(p => isBirthdayToday(p.dob));
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -105,6 +114,37 @@ const ParentDashboard = () => {
                     </div>
                 </button>
             </div>
+
+            {/* Birthday Banner */}
+            <AnimatePresence>
+                {birthdayProfiles.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="mb-8 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 p-1 rounded-2xl shadow-lg shadow-purple-500/30 overflow-hidden relative"
+                    >
+                        {/* Decorative floating confetti effect */}
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay pointer-events-none"></div>
+
+                        <div className="bg-white/10 backdrop-blur-sm px-6 py-6 md:py-4 rounded-xl flex flex-col md:flex-row items-center justify-between text-white relative z-10 gap-4">
+                            <div className="absolute -top-10 -right-10 opacity-20 pointer-events-none rotate-12">
+                                <span className="material-symbols-outlined text-[150px]">celebration</span>
+                            </div>
+                            <div className="flex items-center gap-5">
+                                <div className="text-5xl animate-bounce">🎂</div>
+                                <div>
+                                    <h2 className="text-2xl md:text-3xl font-black drop-shadow-md">Happy Birthday, {birthdayProfiles.map(p => p.name).join(' & ')}!</h2>
+                                    <p className="opacity-90 font-semibold mt-1">Wishing a fantastic day filled with fun, joy, and healthy treats! 🎈</p>
+                                </div>
+                            </div>
+                            <button className="bg-white text-purple-600 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all shadow-xl shadow-black/10 active:scale-95 flex items-center gap-2 whitespace-nowrap">
+                                Celebrate <span className="material-symbols-outlined">auto_awesome</span>
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Doctor Notification Banner */}
             {requests.length > 0 && (
