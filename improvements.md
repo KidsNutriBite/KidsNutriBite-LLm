@@ -9,7 +9,7 @@ This document outlines the pediatrician-requested improvements and the updated s
 ### 1. Authentication & User Profile Changes
 - [x] **1.1 Parent Registration Improvements**
   - Add "Relationship with Child" field (Mother, Father, Guardian, Caretaker).
-- [ ] **1.2 Login Session UX**
+- [x] **1.2 Login Session UX**
   - Update login message to: *"Stay logged in to receive health updates and reminders for your child."*
 - [ ] **1.3 Child Profile Creation**
   - Make the following fields mandatory: Date of Birth (DOB), Gender, Initial Height, Initial Weight, Waist Circumference.
