@@ -85,16 +85,29 @@ import { generateHealthTips } from '../utils/healthTipsEngine.js';
 
 // ... imports
 
+import Appointment from '../models/Appointment.model.js';
+
 // @desc    Get all profiles for logged in parent (with Tips)
 // @route   GET /api/profiles
 // @access  Private (Parent)
 export const getMyProfiles = asyncHandler(async (req, res) => {
     const profiles = await Profile.find({ parentId: req.user._id }).lean();
 
-    // Attach Health Tips to each profile
-    const profilesWithTips = profiles.map(profile => ({
-        ...profile,
-        tips: generateHealthTips(profile.healthConditions)
+    // Attach Health Tips and Last Checkup to each profile
+    const profilesWithTips = await Promise.all(profiles.map(async (profile) => {
+        const lastCheckup = await Appointment.findOne({ profileId: profile._id, status: { $ne: 'cancelled' } })
+            .sort({ date: -1 })
+            .lean();
+
+        return {
+            ...profile,
+            tips: generateHealthTips(profile.healthConditions),
+            lastCheckup: lastCheckup ? {
+                date: lastCheckup.date,
+                time: lastCheckup.time,
+                doctorName: lastCheckup.hospitalName || 'Pediatrician'
+            } : null
+        };
     }));
 
     res.status(200).json(new ApiResponse(200, profilesWithTips));

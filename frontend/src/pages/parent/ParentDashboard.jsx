@@ -232,9 +232,19 @@ const ParentDashboard = () => {
                             <h3 className="text-slate-900 dark:text-white text-2xl font-extrabold mb-1">{profile.name}</h3>
                             <p className="text-slate-500 font-semibold mb-4">Age {profile.age} • Growing Fast</p>
                             <div className="flex flex-col gap-2">
-                                <div className="flex items-center justify-between text-sm bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
-                                    <span className="text-slate-500">Last check-up</span>
-                                    <span className="font-bold text-slate-700 dark:text-slate-300">Recently</span>
+                                <div className="flex flex-col text-sm bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg text-left">
+                                    <span className="text-slate-500 font-bold mb-2 border-b border-slate-200 dark:border-slate-700 pb-1">Last Pediatrician Checkup</span>
+                                    {profile.lastCheckup ? (
+                                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 text-slate-700 dark:text-slate-300">
+                                            <span className="flex items-center gap-1 font-medium"><span className="material-symbols-outlined text-[16px] text-primary">calendar_month</span> {new Date(profile.lastCheckup.date).toLocaleDateString()}</span>
+                                            <span className="flex items-center gap-1 font-medium"><span className="material-symbols-outlined text-[16px] text-primary">schedule</span> {profile.lastCheckup.time}</span>
+                                            <span className="col-span-2 flex items-center gap-1 font-bold text-slate-900 dark:text-white mt-1"><span className="material-symbols-outlined text-[16px] text-primary">stethoscope</span> {profile.lastCheckup.doctorName}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center py-2">
+                                            <span className="text-slate-400 italic text-xs">No past checkups found.</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <button onClick={() => navigate(`/parent/child/${profile._id}`)} className="mt-2 w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-primary hover:text-white transition-colors">
                                     Manage Health

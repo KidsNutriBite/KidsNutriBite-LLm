@@ -17,7 +17,7 @@ This document outlines the pediatrician-requested improvements and the updated s
   - Automate birthday wishes display based on DOB.
 
 ### 2. Parent Dashboard Improvements
-- [ ] **2.1 Update "Recently Checked" Section**
+- [x] **2.1 Update "Recently Checked" Section**
   - Replace current view with "Last Pediatrician Checkup" displaying: Date, Time, Doctor Name.
 - [ ] **2.2 Complete Checkup History**
   - Add a view for parents to see past checkups including: Date, Doctor, Notes, Diagnosis, Prescription.
