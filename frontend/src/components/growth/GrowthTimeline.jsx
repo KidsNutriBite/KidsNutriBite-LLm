@@ -12,6 +12,7 @@ import {
 import RiskBadge from '../common/RiskBadge';
 import VerifiedTag from '../common/VerifiedTag';
 import { motion } from 'framer-motion';
+import ChildHealthAvatar from './ChildHealthAvatar';
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -26,6 +27,11 @@ const CustomTooltip = ({ active, payload, label }) => {
                     <p className="text-sm text-gray-600">
                         <span className="font-bold text-green-600">Weight:</span> {data.weight} kg
                     </p>
+                    {data.waistCircumference && (
+                        <p className="text-sm text-gray-600">
+                            <span className="font-bold text-indigo-600">Waist:</span> {data.waistCircumference} cm
+                        </p>
+                    )}
                     <p className="text-sm text-gray-600">
                         <span className="font-bold text-purple-600">BMI:</span> {data.bmi}
                     </p>
@@ -47,7 +53,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-const GrowthTimeline = ({ data, onDelete }) => {
+const GrowthTimeline = ({ data, profile, onDelete }) => {
     const formattedData = data.map(record => ({
         ...record,
         date: record.timestamp, // Ensure date exists for axis
@@ -66,6 +72,18 @@ const GrowthTimeline = ({ data, onDelete }) => {
 
     return (
         <div className="space-y-8">
+            {latest && profile && (
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 flex justify-center">
+                    <ChildHealthAvatar
+                        age={profile.age || (latest.ageInMonths ? latest.ageInMonths / 12 : 5)}
+                        gender={profile.gender || 'male'}
+                        riskStatus={latest.riskStatus}
+                        height={latest.height}
+                        bmi={latest.bmi}
+                    />
+                </div>
+            )}
+
             {/* Summary Cards */}
             {latest && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -183,6 +201,12 @@ const GrowthTimeline = ({ data, onDelete }) => {
                                 <span>{record.height} cm / {record.weight} kg</span>
                                 <span className="text-gray-300">|</span>
                                 <span>BMI: {record.bmi}</span>
+                                {record.waistCircumference && (
+                                    <>
+                                        <span className="text-gray-300">|</span>
+                                        <span>Waist: {record.waistCircumference} cm</span>
+                                    </>
+                                )}
                             </div>
                         </div>
                         <div className="text-right flex flex-col items-end">

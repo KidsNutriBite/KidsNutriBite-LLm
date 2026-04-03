@@ -5,6 +5,7 @@ const UpdateGrowthModal = ({ isOpen, onClose, childId, onChanged }) => {
     const [formData, setFormData] = useState({
         height: '',
         weight: '',
+        waistCircumference: '',
         notes: ''
     });
     const [loading, setLoading] = useState(false);
@@ -23,11 +24,12 @@ const UpdateGrowthModal = ({ isOpen, onClose, childId, onChanged }) => {
             await addGrowthRecord(childId, {
                 height: Number(formData.height),
                 weight: Number(formData.weight),
+                waistCircumference: formData.waistCircumference ? Number(formData.waistCircumference) : undefined,
                 notes: formData.notes
             });
             onChanged();
             onClose();
-            setFormData({ height: '', weight: '', notes: '' }); // Reset
+            setFormData({ height: '', weight: '', waistCircumference: '', notes: '' }); // Reset
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.message || 'Failed to update growth record');
@@ -82,6 +84,20 @@ const UpdateGrowthModal = ({ isOpen, onClose, childId, onChanged }) => {
                                 placeholder="e.g. 18.5"
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Waist Circumference (cm, Optional)</label>
+                        <input
+                            type="number"
+                            name="waistCircumference"
+                            value={formData.waistCircumference}
+                            onChange={handleChange}
+                            min="0"
+                            step="0.1"
+                            className="w-full px-4 py-3 rounded-xl bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary focus:border-transparent transition font-bold"
+                            placeholder="e.g. 50"
+                        />
                     </div>
 
                     <div>
