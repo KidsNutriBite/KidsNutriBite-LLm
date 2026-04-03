@@ -20,6 +20,12 @@ const ParentDashboard = () => {
     const [selectedProfileForAccess, setSelectedProfileForAccess] = useState('');
     const [view, setView] = useState('dashboard'); // 'dashboard' | 'chat'
 
+    const getDaysSinceUpdate = (profile) => {
+        const lastUpdated = profile.updatedAt || profile.createdAt;
+        if (!lastUpdated) return 0;
+        return Math.floor((new Date() - new Date(lastUpdated)) / (1000 * 60 * 60 * 24));
+    };
+
     const isBirthdayToday = (dobString) => {
         if (!dobString) return false;
         const dob = new Date(dobString);
@@ -146,6 +152,42 @@ const ParentDashboard = () => {
                 )}
             </AnimatePresence>
 
+            {/* 90-Day Growth Update Reminder Banner */}
+            {!loading && (() => {
+                const overdueProfiles = profiles.filter(p => getDaysSinceUpdate(p) >= 90);
+                if (overdueProfiles.length === 0) return null;
+                return (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-2xl p-5 flex items-start gap-4 shadow-sm"
+                    >
+                        <div className="bg-amber-100 dark:bg-amber-800/40 p-3 rounded-xl flex-shrink-0">
+                            <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-2xl">update</span>
+                        </div>
+                        <div className="flex-1">
+                            <h4 className="text-amber-900 dark:text-amber-200 font-bold text-base mb-1">
+                                Growth Stats Update Required
+                            </h4>
+                            <p className="text-amber-700 dark:text-amber-400 text-sm">
+                                The following {overdueProfiles.length > 1 ? 'children need' : 'child needs'} a growth update (height & weight) — it's been over 90 days:
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {overdueProfiles.map(p => (
+                                    <button
+                                        key={p._id}
+                                        onClick={() => navigate(`/parent/child/${p._id}`)}
+                                        className="bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 px-3 py-1 rounded-full text-xs font-bold hover:bg-amber-300 dark:hover:bg-amber-700 transition-colors"
+                                    >
+                                        {p.name} ({getDaysSinceUpdate(p)} days)
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                );
+            })()}
+
             {/* Doctor Notification Banner */}
             {requests.length > 0 && (
                 <div className="mb-12 space-y-4">
@@ -203,9 +245,15 @@ const ParentDashboard = () => {
                     profiles.map((profile, idx) => (
                         <div key={profile._id} className="group bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4">
-                                <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter ${idx % 2 === 0 ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
-                                    {idx % 2 === 0 ? 'Healthy' : 'Growing'}
-                                </span>
+                                {getDaysSinceUpdate(profile) >= 90 ? (
+                                    <span className="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter bg-amber-100 text-amber-700 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[12px]">warning</span> Update Due
+                                    </span>
+                                ) : (
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter ${idx % 2 === 0 ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                                        {idx % 2 === 0 ? 'Healthy' : 'Growing'}
+                                    </span>
+                                )}
                             </div>
                             <div className="mx-auto w-32 h-32 relative mb-6 cursor-pointer" onClick={() => navigate(`/parent/child/${profile._id}`)}>
                                 {profile.profileImage ? (

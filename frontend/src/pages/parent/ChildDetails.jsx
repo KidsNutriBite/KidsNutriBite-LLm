@@ -243,6 +243,30 @@ const ChildDetails = () => {
                 </div>
             </div>
 
+            {/* 90-Day Growth Reminder Banner */}
+            {(() => {
+                const latestRecord = growthRecords[growthRecords.length - 1];
+                const daysSinceRecord = latestRecord 
+                    ? Math.floor((new Date() - new Date(latestRecord.timestamp)) / (1000 * 60 * 60 * 24))
+                    : Math.floor((new Date() - new Date(profile.createdAt)) / (1000 * 60 * 60 * 24));
+                
+                if (daysSinceRecord >= 90) {
+                    return (
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm flex items-start gap-4">
+                            <span className="material-symbols-outlined text-red-500 mt-0.5">warning</span>
+                            <div className="flex-1">
+                                <h4 className="text-red-800 font-bold mb-1">Update Required: Growth Stats</h4>
+                                <p className="text-red-600 text-sm">
+                                    It's been {daysSinceRecord} days since {profile.name}'s growth details were last updated. 
+                                    Please <button onClick={() => { setActiveTab('growth'); setIsGrowthModalOpen(true); }} className="font-bold underline hover:text-red-800">update their height and weight</button> to ensure accurate health tracking.
+                                </p>
+                            </div>
+                        </div>
+                    );
+                }
+                return null;
+            })()}
+
             {/* Main Content Areas */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 

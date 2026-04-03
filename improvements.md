@@ -19,15 +19,15 @@ This document outlines the pediatrician-requested improvements and the updated s
 ### 2. Parent Dashboard Improvements
 - [x] **2.1 Update "Recently Checked" Section**
   - Replace current view with "Last Pediatrician Checkup" displaying: Date, Time, Doctor Name.
-- [ ] **2.2 Complete Checkup History**
+- [x] **2.2 Complete Checkup History**
   - Add a view for parents to see past checkups including: Date, Doctor, Notes, Diagnosis, Prescription.
-- [ ] **2.3 Growth Timeline Visualization**
+- [x] **2.3 Growth Timeline Visualization**
   - Implement visual growth tracking timeline with height/weight growth animations and milestone icons (e.g., Infant, Growing, Active, Healthy Growth).
-- [ ] **2.4 Child Health Avatar**
+- [x] **2.4 Child Health Avatar**
   - Instead of standard charts, show a growing animated character reflecting health states (e.g., Weak energy, Healthy, Strong, Overweight) so kids and parents understand health visually.
-- [ ] **2.5 Waist Circumference Tracking**
+- [x] **2.5 Waist Circumference Tracking**
   - Add "Waist Circumference (cm)" input and incorporate it into growth charts and risk analysis.
-- [ ] **2.6 90-Day Growth Reminder**
+- [x] **2.6 90-Day Growth Reminder**
   - Enforce parent requirement to update height + weight every 90 days.
   - Send notifications (e.g., *"Reminder: 2 days left to update your child’s growth details."*).
 
