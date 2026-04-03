@@ -41,7 +41,7 @@ export const getMealFrequency = asyncHandler(async (req, res) => {
 // @route   POST /api/prescriptions
 // @access  Private (Doctor)
 export const createPrescription = asyncHandler(async (req, res) => {
-    const { profileId, title, instructions } = req.body;
+    const { profileId, title, instructions, diagnosis, notes } = req.body;
 
     if (!profileId || !title || !instructions) {
         res.status(400);
@@ -54,6 +54,8 @@ export const createPrescription = asyncHandler(async (req, res) => {
         doctorId: req.user._id,
         profileId,
         title,
+        diagnosis: diagnosis || '',
+        notes: notes || '',
         instructions
     });
 

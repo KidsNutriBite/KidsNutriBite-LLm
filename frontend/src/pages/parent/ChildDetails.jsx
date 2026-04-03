@@ -183,7 +183,7 @@ const ChildDetails = () => {
         { id: 'overview', label: 'Overview & Logs', icon: '📊' },
         { id: 'growth', label: 'Growth Timeline', icon: '📏' }, // New Tab
         { id: 'analytics', label: 'Nutrition Trends', icon: '📈' },
-        { id: 'prescriptions', label: 'Doctor Actions', icon: '🩺' },
+        { id: 'prescriptions', label: 'Checkup History', icon: '🩺' },
     ];
 
     return (
@@ -397,7 +397,7 @@ const ChildDetails = () => {
                                             <span>📏</span> Update Growth
                                         </button>
                                     </div>
-                                    <GrowthTimeline data={growthRecords} onDelete={handleGrowthDelete} />
+                                    <GrowthTimeline data={growthRecords} profile={profile} onDelete={handleGrowthDelete} />
                                 </div>
                             )}
 
@@ -411,10 +411,10 @@ const ChildDetails = () => {
 
                             {activeTab === 'prescriptions' && (
                                 <div className="space-y-6">
-                                    <h2 className="text-2xl font-bold text-gray-900">Doctor's Orders</h2>
+                                    <h2 className="text-2xl font-bold text-gray-900">Checkup History</h2>
                                     {prescriptions.length === 0 ? (
                                         <div className="bg-white rounded-2xl p-10 text-center border-2 border-dashed border-gray-200">
-                                            <p className="text-gray-500 font-medium">No prescriptions active at the moment.</p>
+                                            <p className="text-gray-500 font-medium">No past checkups found.</p>
                                         </div>
                                     ) : (
                                         <div className="grid gap-4">
@@ -423,14 +423,24 @@ const ChildDetails = () => {
                                                     <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
                                                     <div className="relative z-10">
                                                         <div className="flex justify-between items-start mb-3">
-                                                            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Prescription</span>
+                                                            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Checkup Details</span>
                                                             <span className="text-sm text-gray-400 font-medium">{new Date(p.date).toLocaleDateString()}</span>
                                                         </div>
                                                         <h3 className="text-xl font-bold text-gray-900 mb-2">{p.title}</h3>
-                                                        <p className="text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-xl">{p.instructions}</p>
+                                                        {p.diagnosis && <p className="text-gray-800 mb-2 font-semibold">Diagnosis: <span className="font-normal text-gray-700">{p.diagnosis}</span></p>}
+                                                        <div className="bg-gray-50 p-4 rounded-xl mb-3">
+                                                            <p className="text-sm font-bold text-gray-700 mb-1">Prescription</p>
+                                                            <p className="text-gray-600 leading-relaxed">{p.instructions}</p>
+                                                        </div>
+                                                        {p.notes && (
+                                                            <div className="mb-3 pl-3 border-l-2 border-gray-200">
+                                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Doctor's Notes</p>
+                                                                <p className="text-gray-600 italic text-sm">{p.notes}</p>
+                                                            </div>
+                                                        )}
                                                         <div className="mt-4 flex items-center gap-2">
                                                             <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm">👨‍⚕️</div>
-                                                            <p className="text-sm font-bold text-gray-700">Dr. {p.doctorId.name}</p>
+                                                            <p className="text-sm font-bold text-gray-700">Dr. {p.doctorId?.name || 'Unknown'}</p>
                                                         </div>
                                                     </div>
                                                 </div>
