@@ -30,6 +30,14 @@ This document outlines the pediatrician-requested improvements and the updated s
 - [x] **2.6 90-Day Growth Reminder**
   - Enforce parent requirement to update height + weight every 90 days.
   - Send notifications (e.g., *"Reminder: 2 days left to update your child’s growth details."*).
+- [x] **2.7 Growth Timeline – BMI Status Panel & Waist Circumference in Chart**
+  - Show a BMI status info panel: current category (Underweight/Normal/Overweight/Obese) with recommended BMI range and recommended waist circumference for child's age.
+  - Plot waist circumference as a third line in the growth chart.
+  - Show Height, Weight, BMI, and Waist Circumference as stat cards in summary.
+  - Improve the Delete button style on history records.
+- [x] **2.8 Nutrition Trends – Calorie & Macronutrient Charts**
+  - Add a calorie intake trend line chart (daily calories over last 14 days).
+  - Add a macronutrient breakdown bar chart (Protein / Carbs / Fats per day).
 
 ### 3. Meal Logging Improvements
 - [ ] **3.1 Time Gap Between Meals**

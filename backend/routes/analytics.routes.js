@@ -1,5 +1,5 @@
 import express from 'express';
-import { getMealFrequency, createPrescription, getPrescriptions } from '../controllers/analytics.controller.js';
+import { getMealFrequency, createPrescription, getPrescriptions, getNutritionTrends } from '../controllers/analytics.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
 import { checkDoctorAccess } from '../middlewares/doctor.middleware.js';
 import { authorize } from '../middlewares/role.middleware.js';
@@ -58,6 +58,7 @@ const checkFullAccess = asyncHandler(async (req, res, next) => {
 });
 
 router.get('/meal-frequency/:profileId', checkSharedAccess, checkFullAccess, getMealFrequency);
+router.get('/nutrition-trends/:profileId', checkSharedAccess, getNutritionTrends);
 router.get('/prescriptions/:profileId', checkSharedAccess, getPrescriptions);
 
 router.post('/prescriptions', authorize('doctor'), async (req, res, next) => {

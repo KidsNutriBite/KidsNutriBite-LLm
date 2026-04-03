@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getProfileById as getProfile } from '../../api/profile.api';
 import { logMeal, deleteFoodItem } from '../../api/meal.api';
-import { getMealFrequency, getPrescriptions } from '../../api/analytics.api';
+import { getMealFrequency, getPrescriptions, getNutritionTrends } from '../../api/analytics.api';
 import { getGrowthHistory, deleteGrowthRecord } from '../../api/growth.api'; // Import API
 import MealLogForm from '../../components/parent/MealLogForm';
 import Modal from '../../components/common/Modal';
 import MealFrequencyChart from '../../components/charts/MealFrequencyChart';
+import NutritionTrendsChart from '../../components/charts/NutritionTrendsChart';
 import TipCard from '../../components/common/TipCard';
 import GrowthTimeline from '../../components/growth/GrowthTimeline'; // Import Component
 import UpdateGrowthModal from '../../components/growth/UpdateGrowthModal'; // Import Component
@@ -29,6 +30,7 @@ const ChildDetails = () => {
 
     // Analytics
     const [chartData, setChartData] = useState([]);
+    const [nutritionTrends, setNutritionTrends] = useState([]);
     const [prescriptions, setPrescriptions] = useState([]);
 
     const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -40,13 +42,14 @@ const ChildDetails = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [profileRes, historyRes, dailyRes, chartRes, prescRes, growthRes] = await Promise.all([
+            const [profileRes, historyRes, dailyRes, chartRes, prescRes, growthRes, nutritionRes] = await Promise.all([
                 getProfile(id),
                 getMealHistory(id),
                 getMealsByDate(id, selectedDate),
                 getMealFrequency(id),
                 getPrescriptions(id),
-                getGrowthHistory(id)
+                getGrowthHistory(id),
+                getNutritionTrends(id)
             ]);
             setProfile(profileRes.data || profileRes);
             // historyRes.data.logs might be the array, depends on API struct
@@ -68,6 +71,7 @@ const ChildDetails = () => {
             setChartData(chartRes.data || chartRes || []);
             setPrescriptions(prescRes.data || prescRes || []);
             setGrowthRecords(growthRes.data || growthRes || []);
+            setNutritionTrends(nutritionRes.data || nutritionRes || []);
         } catch (error) {
             console.error(error);
             // navigate('/parent/dashboard'); // Don't redirect on error to allow retry or partial load
@@ -426,11 +430,10 @@ const ChildDetails = () => {
                             )}
 
                             {activeTab === 'analytics' && (
-                                <div className="space-y-6">
-                                    <h2 className="text-2xl font-bold text-gray-900">Nutrition Trends</h2>
-                                    <MealFrequencyChart data={chartData} />
-                                    {/* Add more charts here in future */}
-                                </div>
+                                <NutritionTrendsChart
+                                    data={nutritionTrends}
+                                    mealFrequencyData={chartData}
+                                />
                             )}
 
                             {activeTab === 'prescriptions' && (
