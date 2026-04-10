@@ -1,11 +1,12 @@
 from typing import Dict, Any, List
 from huggingface_hub import InferenceClient
-from ..models import DayPlan, DietPlanResponse, DayPlan
+from models import DayPlan, DietPlanResponse
 import json
 import re
 
 async def generate_diet_plan(
-    client: InferenceClient,
+    hf_client: InferenceClient,
+    gemini_client: Any,
     profile: dict,
     deficiencies: List[Any],
     risk_level: str,
@@ -58,14 +59,40 @@ async def generate_diet_plan(
     """
 
     try:
-        response = client.chat_completion(
-            messages=[{"role": "user", "content": meals_prompt}],
-            max_tokens=1500,  # Increased for multi-day plan
-            temperature=0.2,  # Low temp for deterministic structure
-            response_format={"type": "json_object"} # If supported model
-        )
-        
-        content = response.choices[0].message.content
+        if hf_client:
+            response = hf_client.chat_completion(
+                messages=[{"role": "user", "content": meals_prompt}],
+                max_tokens=1500,  # Increased for multi-day plan
+                temperature=0.2,  # Low temp for deterministic structure
+                response_format={"type": "json_object"} # If supported model
+            )
+            content = response.choices[0].message.content
+        else:
+            raise Exception("HF Client not properly defined.")
+            
+    except Exception as e:
+        print(f"HF Error in generate_diet_plan: {e}. Falling back to Gemini...")
+        if gemini_client:
+             try:
+                 response = gemini_client.models.generate_content(
+                     model='gemini-2.5-flash',
+                     contents=meals_prompt,
+                 )
+                 content = response.text
+             except Exception as gemini_e:
+                 print(f"Gemini fallback failed in generate_diet_plan: {gemini_e}")
+                 return DietPlanResponse(
+                     status="FAILED",
+                     risk_level="ERROR",
+                     reason=f"AI Generation Failed (Both Services): HF({str(e)}), Gemini({str(gemini_e)})"
+                 )
+        else:
+             print("No Gemini Client available for fallback.")
+             return DietPlanResponse(
+                 status="FAILED",
+                 risk_level="ERROR",
+                 reason=f"AI Generation Failed: HF({str(e)}) and Gemini unavailable"
+             )
         
         # 2. Extract JSON
         # Robust parsing
@@ -101,9 +128,9 @@ async def generate_diet_plan(
         )
 
     except Exception as e:
-        print(f"LLM Error: {e}")
+        print(f"JSON Parsing Error: {e}")
         return DietPlanResponse(
             status="FAILED",
             risk_level="ERROR",
-            reason=f"AI Generation Failed: {str(e)}"
+            reason=f"Plan Generation Failed during JSON processing: {str(e)}"
         )

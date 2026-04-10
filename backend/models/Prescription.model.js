@@ -17,6 +17,14 @@ const prescriptionSchema = new mongoose.Schema(
             required: [true, 'Prescription title is required'],
             trim: true,
         },
+        diagnosis: {
+            type: String,
+            default: '',
+        },
+        notes: {
+            type: String,
+            default: '',
+        },
         instructions: {
             type: String,
             required: [true, 'Instructions are required'],

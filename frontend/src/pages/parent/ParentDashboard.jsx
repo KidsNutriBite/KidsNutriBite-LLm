@@ -20,6 +20,21 @@ const ParentDashboard = () => {
     const [selectedProfileForAccess, setSelectedProfileForAccess] = useState('');
     const [view, setView] = useState('dashboard'); // 'dashboard' | 'chat'
 
+    const getDaysSinceUpdate = (profile) => {
+        const lastUpdated = profile.updatedAt || profile.createdAt;
+        if (!lastUpdated) return 0;
+        return Math.floor((new Date() - new Date(lastUpdated)) / (1000 * 60 * 60 * 24));
+    };
+
+    const isBirthdayToday = (dobString) => {
+        if (!dobString) return false;
+        const dob = new Date(dobString);
+        const today = new Date();
+        return dob.getDate() === today.getDate() && dob.getMonth() === today.getMonth();
+    };
+
+    const birthdayProfiles = profiles.filter(p => isBirthdayToday(p.dob));
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -106,6 +121,73 @@ const ParentDashboard = () => {
                 </button>
             </div>
 
+            {/* Birthday Banner */}
+            <AnimatePresence>
+                {birthdayProfiles.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="mb-8 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 p-1 rounded-2xl shadow-lg shadow-purple-500/30 overflow-hidden relative"
+                    >
+                        {/* Decorative floating confetti effect */}
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay pointer-events-none"></div>
+
+                        <div className="bg-white/10 backdrop-blur-sm px-6 py-6 md:py-4 rounded-xl flex flex-col md:flex-row items-center justify-between text-white relative z-10 gap-4">
+                            <div className="absolute -top-10 -right-10 opacity-20 pointer-events-none rotate-12">
+                                <span className="material-symbols-outlined text-[150px]">celebration</span>
+                            </div>
+                            <div className="flex items-center gap-5">
+                                <div className="text-5xl animate-bounce">🎂</div>
+                                <div>
+                                    <h2 className="text-2xl md:text-3xl font-black drop-shadow-md">Happy Birthday, {birthdayProfiles.map(p => p.name).join(' & ')}!</h2>
+                                    <p className="opacity-90 font-semibold mt-1">Wishing a fantastic day filled with fun, joy, and healthy treats! 🎈</p>
+                                </div>
+                            </div>
+                            <button className="bg-white text-purple-600 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all shadow-xl shadow-black/10 active:scale-95 flex items-center gap-2 whitespace-nowrap">
+                                Celebrate <span className="material-symbols-outlined">auto_awesome</span>
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* 90-Day Growth Update Reminder Banner */}
+            {!loading && (() => {
+                const overdueProfiles = profiles.filter(p => getDaysSinceUpdate(p) >= 90);
+                if (overdueProfiles.length === 0) return null;
+                return (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-2xl p-5 flex items-start gap-4 shadow-sm"
+                    >
+                        <div className="bg-amber-100 dark:bg-amber-800/40 p-3 rounded-xl flex-shrink-0">
+                            <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-2xl">update</span>
+                        </div>
+                        <div className="flex-1">
+                            <h4 className="text-amber-900 dark:text-amber-200 font-bold text-base mb-1">
+                                Growth Stats Update Required
+                            </h4>
+                            <p className="text-amber-700 dark:text-amber-400 text-sm">
+                                The following {overdueProfiles.length > 1 ? 'children need' : 'child needs'} a growth update (height & weight) — it's been over 90 days:
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {overdueProfiles.map(p => (
+                                    <button
+                                        key={p._id}
+                                        onClick={() => navigate(`/parent/child/${p._id}`)}
+                                        className="bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 px-3 py-1 rounded-full text-xs font-bold hover:bg-amber-300 dark:hover:bg-amber-700 transition-colors"
+                                    >
+                                        {p.name} ({getDaysSinceUpdate(p)} days)
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                );
+            })()}
+
             {/* Doctor Notification Banner */}
             {requests.length > 0 && (
                 <div className="mb-12 space-y-4">
@@ -163,9 +245,15 @@ const ParentDashboard = () => {
                     profiles.map((profile, idx) => (
                         <div key={profile._id} className="group bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4">
-                                <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter ${idx % 2 === 0 ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
-                                    {idx % 2 === 0 ? 'Healthy' : 'Growing'}
-                                </span>
+                                {getDaysSinceUpdate(profile) >= 90 ? (
+                                    <span className="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter bg-amber-100 text-amber-700 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[12px]">warning</span> Update Due
+                                    </span>
+                                ) : (
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter ${idx % 2 === 0 ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                                        {idx % 2 === 0 ? 'Healthy' : 'Growing'}
+                                    </span>
+                                )}
                             </div>
                             <div className="mx-auto w-32 h-32 relative mb-6 cursor-pointer" onClick={() => navigate(`/parent/child/${profile._id}`)}>
                                 {profile.profileImage ? (
@@ -192,9 +280,19 @@ const ParentDashboard = () => {
                             <h3 className="text-slate-900 dark:text-white text-2xl font-extrabold mb-1">{profile.name}</h3>
                             <p className="text-slate-500 font-semibold mb-4">Age {profile.age} • Growing Fast</p>
                             <div className="flex flex-col gap-2">
-                                <div className="flex items-center justify-between text-sm bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
-                                    <span className="text-slate-500">Last check-up</span>
-                                    <span className="font-bold text-slate-700 dark:text-slate-300">Recently</span>
+                                <div className="flex flex-col text-sm bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg text-left">
+                                    <span className="text-slate-500 font-bold mb-2 border-b border-slate-200 dark:border-slate-700 pb-1">Last Pediatrician Checkup</span>
+                                    {profile.lastCheckup ? (
+                                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 text-slate-700 dark:text-slate-300">
+                                            <span className="flex items-center gap-1 font-medium"><span className="material-symbols-outlined text-[16px] text-primary">calendar_month</span> {new Date(profile.lastCheckup.date).toLocaleDateString()}</span>
+                                            <span className="flex items-center gap-1 font-medium"><span className="material-symbols-outlined text-[16px] text-primary">schedule</span> {profile.lastCheckup.time}</span>
+                                            <span className="col-span-2 flex items-center gap-1 font-bold text-slate-900 dark:text-white mt-1"><span className="material-symbols-outlined text-[16px] text-primary">stethoscope</span> {profile.lastCheckup.doctorName}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center py-2">
+                                            <span className="text-slate-400 italic text-xs">No past checkups found.</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <button onClick={() => navigate(`/parent/child/${profile._id}`)} className="mt-2 w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-primary hover:text-white transition-colors">
                                     Manage Health

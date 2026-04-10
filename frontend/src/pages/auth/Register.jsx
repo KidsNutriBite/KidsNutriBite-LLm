@@ -243,7 +243,7 @@ const Register = () => {
                                                 <option value="Mother">Mother</option>
                                                 <option value="Father">Father</option>
                                                 <option value="Guardian">Guardian</option>
-                                                <option value="Other">Other</option>
+                                                <option value="Caretaker">Caretaker</option>
                                             </select>
                                             <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">expand_more</span>
                                         </div>

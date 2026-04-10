@@ -1,4 +1,5 @@
 import Profile from '../models/Profile.model.js';
+import GrowthRecord from '../models/GrowthRecord.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/apiResponse.js';
 import { profileSchema } from '../validators/profile.schema.js';
@@ -32,12 +33,22 @@ export const createProfile = asyncHandler(async (req, res) => {
     }
 
     // 2. Parse Body (Manual casting for FormData strings)
+    const dob = new Date(req.body.dob);
+    const today = new Date();
+    let computedAge = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        computedAge--;
+    }
+
     const profileData = {
         name: req.body.name,
-        age: Number(req.body.age),
+        dob: dob,
+        age: computedAge,
         gender: req.body.gender,
         height: Number(req.body.height),
         weight: Number(req.body.weight),
+        waistCircumference: Number(req.body.waistCircumference),
         avatar: req.body.avatar || 'lion',
         healthConditions: req.body.healthConditions || [],
         location: {
@@ -57,6 +68,16 @@ export const createProfile = asyncHandler(async (req, res) => {
         ...profileData
     });
 
+    await GrowthRecord.create({
+        childId: profile._id,
+        height: profileData.height,
+        weight: profileData.weight,
+        waistCircumference: profileData.waistCircumference,
+        ageInMonths: (today.getFullYear() - dob.getFullYear()) * 12 + (today.getMonth() - dob.getMonth()),
+        recordedByRole: 'parent',
+        recordedByUserId: req.user._id,
+    });
+
     res.status(201).json(new ApiResponse(201, profile, 'Profile created successfully'));
 });
 
@@ -64,16 +85,29 @@ import { generateHealthTips } from '../utils/healthTipsEngine.js';
 
 // ... imports
 
+import Appointment from '../models/Appointment.model.js';
+
 // @desc    Get all profiles for logged in parent (with Tips)
 // @route   GET /api/profiles
 // @access  Private (Parent)
 export const getMyProfiles = asyncHandler(async (req, res) => {
     const profiles = await Profile.find({ parentId: req.user._id }).lean();
 
-    // Attach Health Tips to each profile
-    const profilesWithTips = profiles.map(profile => ({
-        ...profile,
-        tips: generateHealthTips(profile.healthConditions)
+    // Attach Health Tips and Last Checkup to each profile
+    const profilesWithTips = await Promise.all(profiles.map(async (profile) => {
+        const lastCheckup = await Appointment.findOne({ profileId: profile._id, status: { $ne: 'cancelled' } })
+            .sort({ date: -1 })
+            .lean();
+
+        return {
+            ...profile,
+            tips: generateHealthTips(profile.healthConditions),
+            lastCheckup: lastCheckup ? {
+                date: lastCheckup.date,
+                time: lastCheckup.time,
+                doctorName: lastCheckup.hospitalName || 'Pediatrician'
+            } : null
+        };
     }));
 
     res.status(200).json(new ApiResponse(200, profilesWithTips));

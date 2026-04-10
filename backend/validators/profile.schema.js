@@ -2,10 +2,12 @@ import { z } from 'zod';
 
 export const profileSchema = z.object({
     name: z.string().min(1, 'Name is required'),
-    age: z.number().int().positive('Age must be a positive number'),
+    dob: z.string().or(z.date()),
+    age: z.number().int().positive('Age must be a positive number').optional(),
     gender: z.enum(['male', 'female', 'other']),
     height: z.number().positive('Height must be positive'),
     weight: z.number().positive('Weight must be positive'),
+    waistCircumference: z.number().positive('Waist Circumference must be positive'),
     activityLevel: z.enum(['low', 'moderate', 'high']).optional(),
     dietaryPreferences: z.array(z.string()).optional(),
     avatar: z.string().min(1, 'Avatar selection is required'),

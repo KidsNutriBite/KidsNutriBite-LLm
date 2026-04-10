@@ -12,6 +12,10 @@ const profileSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        dob: {
+            type: Date,
+            required: true,
+        },
         age: {
             type: Number,
             required: true,
@@ -27,6 +31,10 @@ const profileSchema = new mongoose.Schema(
         },
         weight: {
             type: Number, // in kg
+            required: true,
+        },
+        waistCircumference: {
+            type: Number, // in cm
             required: true,
         },
         activityLevel: {

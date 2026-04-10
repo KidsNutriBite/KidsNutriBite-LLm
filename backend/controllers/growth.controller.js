@@ -19,7 +19,7 @@ export const getGrowthHistory = async (req, res) => {
 export const addGrowthRecord = async (req, res) => {
     try {
         const { childId } = req.params;
-        const { height, weight, notes } = req.body;
+        const { height, weight, waistCircumference, notes } = req.body;
         const releasedByUserId = req.user._id.toString();
         const userRole = req.user.role;
 
@@ -57,6 +57,7 @@ export const addGrowthRecord = async (req, res) => {
             bmi,
             percentile,
             riskStatus,
+            waistCircumference,
             ageInMonths,
             recordedByRole: userRole,
             recordedByUserId: releasedByUserId,
@@ -70,6 +71,7 @@ export const addGrowthRecord = async (req, res) => {
         // 7. Update Child's latest stats 
         childProfile.height = height;
         childProfile.weight = weight;
+        if (waistCircumference) childProfile.waistCircumference = waistCircumference;
         await childProfile.save();
 
         // 8. Notification Logic (If Parent & Risky)

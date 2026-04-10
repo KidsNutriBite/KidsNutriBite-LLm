@@ -9,6 +9,7 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ const Login = () => {
         e.preventDefault();
         setError('');
         try {
-            const user = await login(email, password);
+            const user = await login(email, password, rememberMe);
             if (user.role === 'parent') navigate('/parent/dashboard');
             else if (user.role === 'doctor') navigate('/doctor/dashboard');
         } catch (err) {
@@ -137,8 +138,14 @@ const Login = () => {
 
 
                         <div className="flex items-center gap-2 px-1">
-                            <input type="checkbox" id="remember" className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20" />
-                            <label htmlFor="remember" className="text-xs font-medium text-[#4c799a] dark:text-slate-400 select-none cursor-pointer">Stay logged in for healthy reminders</label>
+                            <input 
+                                type="checkbox" 
+                                id="remember" 
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary/20" 
+                            />
+                            <label htmlFor="remember" className="text-xs font-medium text-[#4c799a] dark:text-slate-400 select-none cursor-pointer">Stay logged in to receive health updates and reminders for your child.</label>
                         </div>
 
                         <button type="submit" className="w-full py-3 bg-primary hover:bg-primary/90 text-white font-bold text-base rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2">

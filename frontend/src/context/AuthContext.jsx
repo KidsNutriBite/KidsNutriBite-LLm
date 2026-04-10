@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             if (token) {
                 api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 try {
@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
                 } catch (error) {
                     console.error('Auth check failed', error);
                     localStorage.removeItem('token');
+                    sessionStorage.removeItem('token');
                     delete api.defaults.headers.common['Authorization'];
                 }
             }
@@ -32,12 +33,18 @@ export const AuthProvider = ({ children }) => {
         checkAuth();
     }, []);
 
-    const login = async (email, password) => {
+    const login = async (email, password, rememberMe = false) => {
         const { data } = await authService.login(email, password);
         // data structure: { user: {...}, token: "..." }
         // Storing token in localStorage for Phase 1 simplicity.
         // TODO: Move to HttpOnly cookie for enhanced security in production.
-        localStorage.setItem('token', data.token);
+        if (rememberMe) {
+            localStorage.setItem('token', data.token);
+            sessionStorage.removeItem('token');
+        } else {
+            sessionStorage.setItem('token', data.token);
+            localStorage.removeItem('token');
+        }
         api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
         setUser(data.user);
         return data.user;
@@ -53,6 +60,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         delete api.defaults.headers.common['Authorization'];
         setUser(null);
     };

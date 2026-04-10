@@ -9,16 +9,29 @@ const AddProfileForm = ({ onSuccess, onCancel }) => {
 
     const [formData, setFormData] = useState({
         name: '',
-        age: '',
+        dob: '',
         gender: 'male',
         height: '',
         weight: '',
+        waistCircumference: '',
         avatar: 'lion',
         city: '',
         state: '',
         healthConditions: [], // Multi-select
         otherCondition: '',
     });
+
+    const calculateAge = (dobString) => {
+        if (!dobString) return '';
+        const dob = new Date(dobString);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        return age >= 0 ? age : 0;
+    };
 
     const [profileImage, setProfileImage] = useState(null);
     const [medicalDocs, setMedicalDocs] = useState([]);
@@ -74,9 +87,12 @@ const AddProfileForm = ({ onSuccess, onCancel }) => {
     const validateStep = (currentStep) => {
         if (currentStep === 1) {
             if (!formData.name.trim()) return "Child's name is required";
-            if (!formData.age || formData.age <= 0) return "Valid age is required";
+            if (!formData.dob) return "Date of birth is required";
+            const age = calculateAge(formData.dob);
+            if (age < 0) return "Valid date of birth is required";
             if (!formData.height || formData.height <= 0) return "Valid height is required";
             if (!formData.weight || formData.weight <= 0) return "Valid weight is required";
+            if (!formData.waistCircumference || formData.waistCircumference <= 0) return "Valid waist circumference is required";
         }
         if (currentStep === 2) {
             if (formData.healthConditions.includes('other') && !formData.otherCondition.trim()) {
@@ -123,10 +139,11 @@ const AddProfileForm = ({ onSuccess, onCancel }) => {
 
             // Basic Fields
             data.append('name', formData.name);
-            data.append('age', formData.age);
+            data.append('dob', formData.dob);
             data.append('gender', formData.gender);
             data.append('height', formData.height);
             data.append('weight', formData.weight);
+            data.append('waistCircumference', formData.waistCircumference);
             data.append('avatar', formData.avatar);
             data.append('city', formData.city);
             data.append('state', formData.state);
@@ -226,17 +243,18 @@ const AddProfileForm = ({ onSuccess, onCancel }) => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Age <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Date of Birth <span className="text-red-500">*</span></label>
                             <input
-                                type="number"
-                                value={formData.age}
-                                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                                placeholder="Years"
+                                type="date"
+                                value={formData.dob}
+                                max={new Date().toISOString().split('T')[0]}
+                                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-primary"
                             />
+                            {formData.dob && <p className="text-xs text-gray-500 mt-1 font-medium">Auto-calculated age: {calculateAge(formData.dob)} years</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Gender</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Gender <span className="text-red-500">*</span></label>
                             <select
                                 value={formData.gender}
                                 onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
@@ -249,7 +267,7 @@ const AddProfileForm = ({ onSuccess, onCancel }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">Height (cm) <span className="text-red-500">*</span></label>
                             <input
@@ -267,6 +285,16 @@ const AddProfileForm = ({ onSuccess, onCancel }) => {
                                 value={formData.weight}
                                 onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                                 placeholder="e.g. 25"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-primary"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Waist Circ. (cm) <span className="text-red-500">*</span></label>
+                            <input
+                                type="number"
+                                value={formData.waistCircumference}
+                                onChange={(e) => setFormData({ ...formData, waistCircumference: e.target.value })}
+                                placeholder="e.g. 50"
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-primary"
                             />
                         </div>
