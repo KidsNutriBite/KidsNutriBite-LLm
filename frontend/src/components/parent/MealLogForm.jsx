@@ -4,11 +4,20 @@ import axios from 'axios'; // Import axios directly for FormData if needed, or u
 import { logMeal } from '../../api/meal.api';
 import { FOOD_DATABASE, QUICK_ADDS } from '../../data/foodDatabase'; // Import comprehensive DB
 
+const defaultMealTimes = {
+    breakfast: '08:00',
+    morningSnack: '10:30',
+    lunch: '13:00',
+    afternoonSnack: '16:00',
+    dinner: '20:00',
+    eveningSnack: '21:30'
+};
+
 const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
     const [formData, setFormData] = useState({
         mealType: initialData?.mealType || 'breakfast',
         date: initialData?.date || new Date().toISOString().split('T')[0],
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+        time: initialData?.time || defaultMealTimes[initialData?.mealType || 'breakfast'],
         notes: ''
     });
 
@@ -132,7 +141,7 @@ const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
                             <button
                                 key={type.id}
                                 type="button"
-                                onClick={() => setFormData({ ...formData, mealType: type.id })}
+                                onClick={() => setFormData({ ...formData, mealType: type.id, time: defaultMealTimes[type.id] })}
                                 className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${formData.mealType === type.id ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                             >
                                 <span className="material-symbols-outlined mb-1">{type.icon}</span>
