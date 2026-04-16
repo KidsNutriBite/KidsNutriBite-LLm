@@ -10,6 +10,47 @@ const DailyMealCard = ({ date, log, onAdd, onEdit }) => {
 
     const getItems = (type) => log ? log[type] || [] : [];
     const isLogged = (type) => getItems(type).length > 0;
+    const getMealTimeStr = (meal) => log?.[`${meal.id}Time`] || meal.time;
+
+    const parseTime = (timeStr) => {
+        if (!timeStr) return null;
+        let [hours, minutes] = timeStr.split(':');
+        let modifier = '';
+        if (minutes.includes(' ')) {
+            [minutes, modifier] = minutes.split(' ');
+        }
+        hours = parseInt(hours, 10);
+        if (modifier === 'PM' && hours < 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+        
+        const d = new Date();
+        d.setHours(hours, parseInt(minutes, 10), 0, 0);
+        return d;
+    };
+
+    const calculateGap = (currentIndex) => {
+        if (currentIndex === 0) return null;
+        const currentMeal = mealTypes[currentIndex];
+        if (!isLogged(currentMeal.id)) return null;
+
+        for (let i = currentIndex - 1; i >= 0; i--) {
+            const prevMeal = mealTypes[i];
+            if (isLogged(prevMeal.id)) {
+                const currentTime = parseTime(getMealTimeStr(currentMeal));
+                const prevTime = parseTime(getMealTimeStr(prevMeal));
+                if (currentTime && prevTime) {
+                    const diffMs = currentTime - prevTime;
+                    if (diffMs > 0) {
+                        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                        return `${hours > 0 ? `${hours}h ` : ''}${minutes > 0 ? `${minutes}m` : ''}`.trim() + ' since last meal';
+                    }
+                }
+                break;
+            }
+        }
+        return null;
+    };
 
     return (
         <div className="space-y-4">
@@ -19,9 +60,10 @@ const DailyMealCard = ({ date, log, onAdd, onEdit }) => {
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mealTypes.map((meal) => {
+                {mealTypes.map((meal, idx) => {
                     const items = getItems(meal.id);
                     const filled = isLogged(meal.id);
+                    const gapText = calculateGap(idx);
 
                     return (
                         <motion.div
@@ -37,7 +79,9 @@ const DailyMealCard = ({ date, log, onAdd, onEdit }) => {
                                     </div>
                                     <div>
                                         <h4 className={`font-bold ${filled ? 'text-gray-800' : 'text-gray-500'}`}>{meal.label}</h4>
-                                        <span className="text-xs text-gray-400 font-medium">{meal.time}</span>
+                                        <span className="text-xs text-gray-400 font-medium">
+                                            {getMealTimeStr(meal)}
+                                        </span>
                                     </div>
                                 </div>
 
@@ -57,10 +101,18 @@ const DailyMealCard = ({ date, log, onAdd, onEdit }) => {
                                             <span className="text-xs text-gray-500 font-bold bg-white px-2 py-1 rounded border border-gray-100">{item.quantity}</span>
                                         </div>
                                     ))}
-                                    <div className="pt-2 mt-2 border-t border-gray-100 flex gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                        <span>{items.reduce((a, b) => a + (b.calories || 0), 0)} kcal</span>
-                                        <span>•</span>
-                                        <span>{items.reduce((a, b) => a + (b.protein || 0), 0)}g Protein</span>
+                                    <div className="pt-2 mt-2 border-t border-gray-100 flex gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider items-center justify-between">
+                                        <div className="flex gap-2">
+                                            <span>{items.reduce((a, b) => a + (b.calories || 0), 0)} kcal</span>
+                                            <span>•</span>
+                                            <span>{items.reduce((a, b) => a + (b.protein || 0), 0)}g Protein</span>
+                                        </div>
+                                        {gapText && (
+                                            <div className="text-indigo-400 flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[12px]">schedule</span>
+                                                {gapText}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ) : (

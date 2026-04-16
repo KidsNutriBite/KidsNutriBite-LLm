@@ -6,7 +6,7 @@ import ApiResponse from '../utils/apiResponse.js';
 // @route   POST /api/meals
 // @access  Private (Parent)
 export const logMeal = asyncHandler(async (req, res) => {
-    const { profileId, date, mealType, foodItems, notes } = req.body;
+    const { profileId, date, mealType, foodItems, time, notes } = req.body;
 
     // Validate Input
     if (!profileId || !date || !mealType || !foodItems) {
@@ -32,12 +32,16 @@ export const logMeal = asyncHandler(async (req, res) => {
         dailyLog = new MealLog({
             profileId,
             date,
-            [mealType]: parsedFoodItems
+            [mealType]: parsedFoodItems,
+            [`${mealType}Time`]: time || null
         });
     } else {
         // Update existing log
         // We append to the existing list for that meal type
         dailyLog[mealType] = [...dailyLog[mealType], ...parsedFoodItems];
+        if (time) {
+            dailyLog[`${mealType}Time`] = time;
+        }
     }
 
     // Calculate Completed Meals Count (Simple logic: if array has items, it counts)

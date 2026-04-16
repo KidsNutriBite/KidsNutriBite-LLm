@@ -24,9 +24,13 @@ const dailyMealLogSchema = new mongoose.Schema(
             index: true
         },
         breakfast: [foodItemSchema],
+        breakfastTime: { type: String, default: null },
         lunch: [foodItemSchema],
+        lunchTime: { type: String, default: null },
         snacks: [foodItemSchema],
+        snacksTime: { type: String, default: null },
         dinner: [foodItemSchema],
+        dinnerTime: { type: String, default: null },
 
         completedMealsCount: {
             type: Number,

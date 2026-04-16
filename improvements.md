@@ -40,7 +40,7 @@ This document outlines the pediatrician-requested improvements and the updated s
   - Add a macronutrient breakdown bar chart (Protein / Carbs / Fats per day).
 
 ### 3. Meal Logging Improvements
-- [ ] **3.1 Time Gap Between Meals**
+- [x] **3.1 Time Gap Between Meals**
   - Automatically calculate and display the time since the previous meal for meal pattern analysis.
 - [ ] **3.2 Snack Logging Improvement**
   - Expand snack options to: Morning Snack, Afternoon Snack, Evening Snack.
