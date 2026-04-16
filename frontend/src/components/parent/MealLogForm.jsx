@@ -120,12 +120,14 @@ const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
                 {/* Meal Type Selectors */}
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Meal Type</label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                         {[
                             { id: 'breakfast', label: 'Breakfast', icon: 'sunny' },
+                            { id: 'morningSnack', label: 'M. Snack', icon: 'cookie' },
                             { id: 'lunch', label: 'Lunch', icon: 'light_mode' },
+                            { id: 'afternoonSnack', label: 'A. Snack', icon: 'cookie' },
                             { id: 'dinner', label: 'Dinner', icon: 'bedtime' },
-                            { id: 'snack', label: 'Snack', icon: 'cookie' }
+                            { id: 'eveningSnack', label: 'E. Snack', icon: 'cookie' }
                         ].map((type) => (
                             <button
                                 key={type.id}

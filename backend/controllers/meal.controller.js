@@ -47,9 +47,11 @@ export const logMeal = asyncHandler(async (req, res) => {
     // Calculate Completed Meals Count (Simple logic: if array has items, it counts)
     let count = 0;
     if (dailyLog.breakfast && dailyLog.breakfast.length > 0) count++;
+    if (dailyLog.morningSnack && dailyLog.morningSnack.length > 0) count++;
     if (dailyLog.lunch && dailyLog.lunch.length > 0) count++;
-    if (dailyLog.snacks && dailyLog.snacks.length > 0) count++;
+    if (dailyLog.afternoonSnack && dailyLog.afternoonSnack.length > 0) count++;
     if (dailyLog.dinner && dailyLog.dinner.length > 0) count++;
+    if (dailyLog.eveningSnack && dailyLog.eveningSnack.length > 0) count++;
 
     dailyLog.completedMealsCount = count;
 
@@ -83,7 +85,7 @@ export const getMealsByDate = asyncHandler(async (req, res) => {
 
     if (!log) {
         // Return empty structure for frontend to render "empty" state
-        return res.status(200).json(new ApiResponse(200, { date, breakfast: [], lunch: [], snacks: [], dinner: [] }, "No logs found (Empty)"));
+        return res.status(200).json(new ApiResponse(200, { date, breakfast: [], morningSnack: [], lunch: [], afternoonSnack: [], dinner: [], eveningSnack: [] }, "No logs found (Empty)"));
     }
 
     res.status(200).json(new ApiResponse(200, log, "Daily meals fetched"));

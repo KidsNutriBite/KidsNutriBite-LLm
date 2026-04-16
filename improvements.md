@@ -42,7 +42,7 @@ This document outlines the pediatrician-requested improvements and the updated s
 ### 3. Meal Logging Improvements
 - [x] **3.1 Time Gap Between Meals**
   - Automatically calculate and display the time since the previous meal for meal pattern analysis.
-- [ ] **3.2 Snack Logging Improvement**
+- [x] **3.2 Snack Logging Improvement**
   - Expand snack options to: Morning Snack, Afternoon Snack, Evening Snack.
 - [ ] **3.3 Default Meal Times**
   - Provide editable default times: Breakfast (8:00 AM), Lunch (1:00 PM), Dinner (8:00 PM).

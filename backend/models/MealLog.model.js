@@ -27,15 +27,19 @@ const dailyMealLogSchema = new mongoose.Schema(
         breakfastTime: { type: String, default: null },
         lunch: [foodItemSchema],
         lunchTime: { type: String, default: null },
-        snacks: [foodItemSchema],
-        snacksTime: { type: String, default: null },
+        morningSnack: [foodItemSchema],
+        morningSnackTime: { type: String, default: null },
+        afternoonSnack: [foodItemSchema],
+        afternoonSnackTime: { type: String, default: null },
+        eveningSnack: [foodItemSchema],
+        eveningSnackTime: { type: String, default: null },
         dinner: [foodItemSchema],
         dinnerTime: { type: String, default: null },
 
         completedMealsCount: {
             type: Number,
             default: 0,
-            max: 4
+            max: 6
         },
 
         // Metadata for streak tracking
