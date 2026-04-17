@@ -48,7 +48,7 @@ This document outlines the pediatrician-requested improvements and the updated s
   - Provide editable default times: Breakfast (8:00 AM), Lunch (1:00 PM), Dinner (8:00 PM).
 - [x] **3.4 Food Quantity Input**
   - Allow specifying quantity for each food item (e.g., `[-] 100 g [+]`), with reasonable defaults.
-- [ ] **3.5 Portion Size Education**
+- [x] **3.5 Portion Size Education**
   - Display practical equivalents when an item is selected (e.g., *100 g rice ≈ 1 cup*, *1 glass milk ≈ 250 ml*).
   
 - [ ] **3.6 Food Image Recognition**

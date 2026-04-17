@@ -68,6 +68,18 @@ const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
         }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
     }, [selectedFoods]);
 
+    const getEquivalent = (qty) => {
+        if (!qty) return '';
+        const lqty = qty.toLowerCase();
+        if (lqty.includes('bowl')) return '≈ 150-200g (1 katori)';
+        if (lqty.includes('glass')) return '≈ 250ml';
+        if (lqty.includes('cup')) return '≈ 150ml';
+        if (lqty.includes('slice')) return 'Standard bakery slice';
+        if (lqty.includes('handful')) return '≈ 30g';
+        if (lqty.includes('100g')) return '≈ 1 small cup';
+        return '';
+    };
+
     const handleFileChange = (e) => {
         if (e.target.files[0]) {
             setPhoto(e.target.files[0]);
@@ -254,7 +266,15 @@ const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
                                             <p className="font-bold text-gray-800">{item.name}</p>
                                             {item.tag && <span className="text-[10px] px-2 py-0.5 bg-green-50 text-green-700 rounded-full font-bold uppercase">{item.tag}</span>}
                                         </div>
-                                        <p className="text-xs text-gray-500">{item.qty}</p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <p className="text-xs text-gray-500 font-medium">{item.qty}</p>
+                                            {getEquivalent(item.qty) && (
+                                                <span className="text-[10px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded flex items-center gap-1 font-bold">
+                                                    <span className="material-symbols-outlined text-[10px]">info</span>
+                                                    {getEquivalent(item.qty)}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     
                                     {/* Quantity Controls */}
