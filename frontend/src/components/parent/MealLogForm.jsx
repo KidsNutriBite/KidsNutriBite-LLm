@@ -39,7 +39,7 @@ const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
     }, [searchQuery]);
 
     const addFood = (food) => {
-        setSelectedFoods([...selectedFoods, { ...food, id: Date.now() }]);
+        setSelectedFoods([...selectedFoods, { ...food, id: Date.now(), servings: 1 }]);
         setSearchQuery('');
         setSearchResults([]);
     };
@@ -48,13 +48,23 @@ const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
         setSelectedFoods(selectedFoods.filter(f => f.id !== id));
     };
 
+    const updateQuantity = (id, delta) => {
+        setSelectedFoods(selectedFoods.map(f => {
+            if (f.id === id) {
+                const newServings = Math.max(0.5, f.servings + delta); // Allow half-servings, min 0.5
+                return { ...f, servings: newServings };
+            }
+            return f;
+        }));
+    };
+
     // Calculate Totals
     const nutrients = useMemo(() => {
         return selectedFoods.reduce((acc, item) => ({
-            calories: acc.calories + item.cal,
-            protein: acc.protein + item.p,
-            carbs: acc.carbs + item.c,
-            fat: acc.fat + item.f
+            calories: Math.round(acc.calories + (item.cal * item.servings)),
+            protein: Math.round((acc.protein + (item.p * item.servings)) * 10) / 10,
+            carbs: Math.round((acc.carbs + (item.c * item.servings)) * 10) / 10,
+            fat: Math.round((acc.fat + (item.f * item.servings)) * 10) / 10
         }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
     }, [selectedFoods]);
 
@@ -82,11 +92,11 @@ const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
             // Serialize
             const foodItemsPayload = selectedFoods.map(f => ({
                 name: f.name,
-                quantity: f.qty,
-                calories: f.cal,
-                protein: f.p,
-                carbs: f.c,
-                fats: f.f
+                quantity: f.servings === 1 ? f.qty : `${f.servings} x ${f.qty}`,
+                calories: Math.round(f.cal * f.servings),
+                protein: Math.round(f.p * f.servings * 10) / 10,
+                carbs: Math.round(f.c * f.servings * 10) / 10,
+                fats: Math.round(f.f * f.servings * 10) / 10
             }));
             data.append('foodItems', JSON.stringify(foodItemsPayload));
             data.append('nutrients', JSON.stringify(nutrients));
@@ -238,12 +248,25 @@ const MealLogForm = ({ profileId, initialData, onSuccess, onCancel }) => {
                                 <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center mr-3">
                                     <span className="material-symbols-outlined">restaurant</span>
                                 </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <p className="font-bold text-gray-800">{item.name}</p>
-                                        {item.tag && <span className="text-[10px] px-2 py-0.5 bg-green-50 text-green-700 rounded-full font-bold uppercase">{item.tag}</span>}
+                                <div className="flex-1 flex items-center justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-bold text-gray-800">{item.name}</p>
+                                            {item.tag && <span className="text-[10px] px-2 py-0.5 bg-green-50 text-green-700 rounded-full font-bold uppercase">{item.tag}</span>}
+                                        </div>
+                                        <p className="text-xs text-gray-500">{item.qty}</p>
                                     </div>
-                                    <p className="text-xs text-gray-500">{item.qty}</p>
+                                    
+                                    {/* Quantity Controls */}
+                                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-2 py-1 border border-gray-100">
+                                        <button type="button" onClick={() => updateQuantity(item.id, -0.5)} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded-md font-bold transition-colors">
+                                            -
+                                        </button>
+                                        <span className="text-xs font-bold w-6 text-center text-gray-700">{item.servings}x</span>
+                                        <button type="button" onClick={() => updateQuantity(item.id, 0.5)} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-200 rounded-md font-bold transition-colors">
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
                                 <button onClick={() => removeFood(item.id)} className="text-gray-400 hover:text-red-500 p-2">
                                     <span className="material-symbols-outlined">close</span>

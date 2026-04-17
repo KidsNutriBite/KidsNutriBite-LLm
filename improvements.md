@@ -46,10 +46,11 @@ This document outlines the pediatrician-requested improvements and the updated s
   - Expand snack options to: Morning Snack, Afternoon Snack, Evening Snack.
 - [x] **3.3 Default Meal Times**
   - Provide editable default times: Breakfast (8:00 AM), Lunch (1:00 PM), Dinner (8:00 PM).
-- [ ] **3.4 Food Quantity Input**
+- [x] **3.4 Food Quantity Input**
   - Allow specifying quantity for each food item (e.g., `[-] 100 g [+]`), with reasonable defaults.
 - [ ] **3.5 Portion Size Education**
   - Display practical equivalents when an item is selected (e.g., *100 g rice ≈ 1 cup*, *1 glass milk ≈ 250 ml*).
+  
 - [ ] **3.6 Food Image Recognition**
   - Add "Upload Food Photo" option for AI-based automatic food detection (e.g., using YOLOv8 or Food101 dataset), falling back to manual selection if it fails.
 - [ ] **3.7 Nutritional Data Expansion**
