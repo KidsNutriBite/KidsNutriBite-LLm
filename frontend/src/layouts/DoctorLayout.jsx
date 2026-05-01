@@ -1,12 +1,16 @@
-import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
+"use client";
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
 
-const DoctorLayout = () => {
+const DoctorLayout = ({ children }) => {
     const { logout, user } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
+    const router = useRouter();
+    const navigate = (path) => typeof path === 'number' && path < 0 ? router.back() : router.push(path);
+    const pathname = usePathname();
+    const location = { pathname };
 
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -83,14 +87,14 @@ const DoctorLayout = () => {
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-md shadow-primary/40">
                         <span className="material-symbols-outlined">nutrition</span>
                     </div>
-                    <Link to="/doctor/dashboard" className="text-slate-900 dark:text-white text-2xl font-extrabold tracking-tight hidden sm:block">NutriKid</Link>
-                    <Link to="/doctor/dashboard" className="text-slate-900 dark:text-white text-xl font-extrabold tracking-tight sm:hidden">NutriKid</Link>
+                    <Link href="/doctor/dashboard" className="text-slate-900 dark:text-white text-2xl font-extrabold tracking-tight hidden sm:block">NutriKid</Link>
+                    <Link href="/doctor/dashboard" className="text-slate-900 dark:text-white text-xl font-extrabold tracking-tight sm:hidden">NutriKid</Link>
                 </div>
 
                 {/* Desktop Nav */}
                 <nav className="hidden md:flex items-center gap-2">
                     <Link
-                        to="/doctor/dashboard"
+                        href="/doctor/dashboard"
                         className={isActive('/doctor/dashboard')
                             ? "bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 transition-all"
                             : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary px-5 py-2.5 transition-colors"}
@@ -98,7 +102,7 @@ const DoctorLayout = () => {
                         Patients
                     </Link>
                     <Link
-                        to="/doctor/appointments"
+                        href="/doctor/appointments"
                         className={isActive('/doctor/appointments')
                             ? "bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 transition-all"
                             : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary px-5 py-2.5 transition-colors"}
@@ -106,7 +110,7 @@ const DoctorLayout = () => {
                         Appointments
                     </Link>
                     <Link
-                        to="/doctor/resources"
+                        href="/doctor/resources"
                         className={isActive('/doctor/resources')
                             ? "bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 transition-all"
                             : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary px-5 py-2.5 transition-colors"}
@@ -114,7 +118,7 @@ const DoctorLayout = () => {
                         Medical Resources
                     </Link>
                     <Link
-                        to="/doctor/analytics"
+                        href="/doctor/analytics"
                         className={isActive('/doctor/analytics')
                             ? "bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/30 transition-all"
                             : "text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary px-5 py-2.5 transition-colors"}
@@ -196,7 +200,7 @@ const DoctorLayout = () => {
                                 </div>
                                 <div className="p-2">
                                     <Link
-                                        to="/doctor/profile"
+                                        href="/doctor/profile"
                                         onClick={() => setShowProfileDropdown(false)}
                                         className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-primary/5 hover:text-primary rounded-xl transition-all group"
                                     >
@@ -226,7 +230,7 @@ const DoctorLayout = () => {
                 <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 sticky top-[73px] z-40 shadow-lg">
                     <nav className="flex flex-col gap-2">
                         <Link
-                            to="/doctor/dashboard"
+                            href="/doctor/dashboard"
                             onClick={() => setShowMobileMenu(false)}
                             className={isActive('/doctor/dashboard') ? "bg-primary/10 text-primary font-bold px-4 py-3 rounded-xl" : "text-slate-600 dark:text-slate-400 font-medium px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"}
                         >
@@ -236,7 +240,7 @@ const DoctorLayout = () => {
                             </div>
                         </Link>
                         <Link
-                            to="/doctor/appointments"
+                            href="/doctor/appointments"
                             onClick={() => setShowMobileMenu(false)}
                             className={isActive('/doctor/appointments') ? "bg-primary/10 text-primary font-bold px-4 py-3 rounded-xl" : "text-slate-600 dark:text-slate-400 font-medium px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"}
                         >
@@ -246,7 +250,7 @@ const DoctorLayout = () => {
                             </div>
                         </Link>
                         <Link
-                            to="/doctor/resources"
+                            href="/doctor/resources"
                             onClick={() => setShowMobileMenu(false)}
                             className={isActive('/doctor/resources') ? "bg-primary/10 text-primary font-bold px-4 py-3 rounded-xl" : "text-slate-600 dark:text-slate-400 font-medium px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"}
                         >
@@ -256,7 +260,7 @@ const DoctorLayout = () => {
                             </div>
                         </Link>
                         <Link
-                            to="/doctor/analytics"
+                            href="/doctor/analytics"
                             onClick={() => setShowMobileMenu(false)}
                             className={isActive('/doctor/analytics') ? "bg-primary/10 text-primary font-bold px-4 py-3 rounded-xl" : "text-slate-600 dark:text-slate-400 font-medium px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"}
                         >
@@ -270,7 +274,7 @@ const DoctorLayout = () => {
             )}
 
             <main className="max-w-[1200px] mx-auto w-full px-6 py-8">
-                <Outlet />
+                {children}
             </main>
         </div>
     );

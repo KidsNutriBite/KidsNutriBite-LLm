@@ -1,3 +1,4 @@
+"use client";
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {

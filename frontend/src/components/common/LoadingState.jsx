@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 
 const LoadingState = ({ message = "Finding best pediatric care nearby..." }) => {

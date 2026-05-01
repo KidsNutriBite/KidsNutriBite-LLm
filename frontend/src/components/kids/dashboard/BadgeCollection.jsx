@@ -1,3 +1,4 @@
+"use client";
 const BadgeItem = ({ icon, name, color, isLocked }) => (
     <div className="flex flex-col items-center gap-2 group">
         <div className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-lg border-4 border-white transition-transform group-hover:scale-105 ${isLocked ? 'bg-slate-100 text-slate-300 grayscale' : `${color} text-white`}`}>

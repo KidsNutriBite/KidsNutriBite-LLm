@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios'; // Import axios directly for FormData if needed, or use api instance
 // Assuming logMeal is imported correctly

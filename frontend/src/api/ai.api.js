@@ -9,7 +9,7 @@ export const analyzeNutrition = async (age, gender, meals) => {
             age: parseInt(age),
             gender: gender || 'neutral',
             meals: meals.map(m => ({
-                name: m.foodItems.map(f => f.name).join(', '),
+                name: m.foodItems ? m.foodItems.map(f => f.name).join(', ') : 'Unknown Meal',
                 portion: '1 serving' // Defaulting as we might not have precise portion data yet
             }))
         });

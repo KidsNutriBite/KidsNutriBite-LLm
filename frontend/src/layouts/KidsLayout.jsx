@@ -1,7 +1,8 @@
+"use client";
 
-import { Outlet } from 'react-router-dom';
+import {  } from 'next/navigation';
 
-const KidsLayout = () => {
+const KidsLayout = ({ children }) => {
     return (
         <div className="relative min-h-screen w-full flex flex-col bg-gradient-to-br from-blue-100 to-blue-50 dark:from-slate-900 dark:to-slate-800 font-display transition-colors duration-500 overflow-hidden">
             {/* Decorative Background Elements (Global for Kids Mode) */}
@@ -15,7 +16,7 @@ const KidsLayout = () => {
                 <span className="material-symbols-outlined text-9xl text-primary animate-pulse">star</span>
             </div>
 
-            <Outlet />
+            {children}
         </div>
     );
 };

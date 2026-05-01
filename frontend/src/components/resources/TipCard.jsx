@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 
 const TipCard = ({ title, preview, isSaved, onToggleSave, onClick }) => {

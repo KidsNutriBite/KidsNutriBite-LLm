@@ -21,6 +21,7 @@ import appointmentRoutes from './routes/appointment.routes.js';
 import parentRoutes from './routes/parent.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import growthRoutes from './routes/growth.routes.js'; // New import
+import escalationRoutes from './routes/escalation.routes.js';
 // error middleware import placeholder
 
 // Initialize App
@@ -31,7 +32,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [process.env.CLIENT_URL || 'http://localhost:5173', 'http://localhost:3000'],
     credentials: true
 }));
 app.use(helmet({
@@ -54,6 +55,7 @@ app.use('/api/game', gameRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/growth', growthRoutes); // New route
+app.use('/api/escalations', escalationRoutes);
 
 // Health Check
 app.get('/', (req, res) => {

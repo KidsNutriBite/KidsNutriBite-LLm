@@ -75,6 +75,10 @@ const profileSchema = new mongoose.Schema(
             type: String, // Doctor's notes
             default: ''
         },
+        onboarding: {
+            whyUsingApp: { type: String },
+            goals: { type: [String], default: [] },
+        },
     },
     { timestamps: true }
 );

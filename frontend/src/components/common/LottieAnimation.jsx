@@ -1,3 +1,4 @@
+"use client";
 import { useLottie } from "lottie-react";
 
 // Placeholder animation data if none provided (Simple pulsing circle)

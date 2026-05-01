@@ -35,7 +35,13 @@ const dailyMealLogSchema = new mongoose.Schema(
         },
 
         // Metadata for streak tracking
-        isStreakCounted: { type: Boolean, default: false }
+        // Metadata for streak tracking
+        isStreakCounted: { type: Boolean, default: false },
+
+        // Sleep & Activity Tracking
+        sleepHours: { type: Number, default: 0 },
+        activityMinutes: { type: Number, default: 0 },
+        activityType: { type: String, default: '' }
     },
     { timestamps: true }
 );

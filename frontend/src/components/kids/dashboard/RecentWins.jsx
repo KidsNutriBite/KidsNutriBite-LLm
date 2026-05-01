@@ -1,3 +1,4 @@
+"use client";
 const RecentWins = () => {
     return (
         <div className="bg-blue-50/50 rounded-[2.5rem] p-8 border border-blue-100">
