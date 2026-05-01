@@ -7,7 +7,8 @@
     "start": "node backend/server.js",
     "server": "cd backend && npm run dev",
     "client": "cd frontend && npm run dev",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "ai": "cd nutrikid-backend && python main.py",
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run ai\"",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
